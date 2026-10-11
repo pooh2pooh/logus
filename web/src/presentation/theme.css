@@ -1,0 +1,366 @@
+/* Тема презентации Logus Nova — фирменный тёмный стиль кабинета клиента. */
+:root {
+  --bg: #0f1115;
+  --surface: #181b22;
+  --surface-2: #1f2430;
+  --border: #2a2f3a;
+  --text: #e7e9ee;
+  --muted: #9aa3b2;
+  --accent: #4c8bf5;
+  --accent-2: #2f6fd6;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --danger: #f87171;
+}
+
+html,
+body {
+  background: var(--bg);
+}
+
+.reveal {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  font-size: 30px;
+}
+
+.reveal .slides {
+  text-align: left;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3 {
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin: 0 0 0.35em;
+  text-transform: none;
+}
+
+.reveal h1 {
+  font-size: 1.9em;
+}
+
+.reveal h2 {
+  font-size: 1.35em;
+}
+
+.reveal h3 {
+  font-size: 0.85em;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-bottom: 0.5em;
+}
+
+.reveal p,
+.reveal li {
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.reveal .muted {
+  color: var(--muted);
+}
+
+.reveal ul {
+  margin: 0.2em 0 0 0;
+}
+
+.reveal li {
+  margin-bottom: 0.32em;
+  font-size: 0.82em;
+}
+
+.reveal li::marker {
+  color: var(--accent);
+}
+
+.reveal strong {
+  color: #fff;
+}
+
+.reveal a {
+  color: var(--accent);
+}
+
+/* Титульный слайд */
+.title-slide .title-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  margin-bottom: 0.5em;
+}
+
+.brand-mark {
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 0.32em;
+  background: linear-gradient(160deg, #3a6fd8, #2456bd);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex: none;
+}
+
+.brand-mark svg {
+  width: 62%;
+  height: 62%;
+}
+
+.title-slide .eyebrow {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.5em;
+  font-weight: 600;
+}
+
+.title-slide h1 {
+  font-size: 2.05em;
+  max-width: 16em;
+}
+
+.title-slide .lead {
+  color: var(--muted);
+  font-size: 0.72em;
+  max-width: 26em;
+}
+
+.title-slide .meta {
+  margin-top: 0.9em;
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.28em 0.6em;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.58em;
+  color: var(--muted);
+}
+
+.pill--accent {
+  border-color: rgba(76, 139, 245, 0.5);
+  color: var(--accent);
+}
+
+/* Сетки карточек */
+.grid {
+  display: grid;
+  gap: 0.55em;
+  margin-top: 0.3em;
+}
+
+.grid--2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5em;
+  padding: 0.6em 0.7em;
+}
+
+.card h4 {
+  margin: 0 0 0.3em;
+  font-size: 0.72em;
+  color: var(--text);
+}
+
+.card p,
+.card li {
+  font-size: 0.6em;
+  line-height: 1.4;
+  margin: 0;
+  color: var(--muted);
+}
+
+.card--accent {
+  border-color: rgba(76, 139, 245, 0.45);
+  background: linear-gradient(180deg, rgba(76, 139, 245, 0.12), rgba(76, 139, 245, 0.03));
+}
+
+.card--danger {
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.card--ok {
+  border-color: rgba(74, 222, 128, 0.42);
+}
+
+/* Схема цепочки */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  flex-wrap: wrap;
+  margin: 0.4em 0 0.2em;
+}
+
+.flow .node {
+  flex: 1 1 0;
+  min-width: 4em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 0.45em;
+  padding: 0.5em 0.5em;
+  text-align: center;
+}
+
+.flow .node b {
+  display: block;
+  font-size: 0.66em;
+}
+
+.flow .node span {
+  font-size: 0.5em;
+  color: var(--muted);
+}
+
+.flow .arrow {
+  color: var(--accent);
+  font-size: 1em;
+  flex: none;
+}
+
+/* Инфографика KPI */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5em;
+  margin-top: 0.4em;
+}
+
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5em;
+  padding: 0.55em;
+  text-align: center;
+}
+
+.kpi b {
+  display: block;
+  font-size: 0.95em;
+  color: var(--accent);
+}
+
+.kpi span {
+  font-size: 0.5em;
+  color: var(--muted);
+}
+
+/* Таймлайн внедрения */
+.timeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5em;
+  margin-top: 0.4em;
+}
+
+.step {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: 0.4em;
+  padding: 0.55em;
+}
+
+.step small {
+  color: var(--accent);
+  font-size: 0.5em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.step b {
+  display: block;
+  font-size: 0.66em;
+  margin: 0.15em 0;
+}
+
+.step p {
+  font-size: 0.55em;
+  color: var(--muted);
+  margin: 0;
+}
+
+.slide-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.2em;
+  font-size: 0.42em;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 0.4em;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 0.7em;
+  align-items: start;
+}
+
+.checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.checklist li {
+  position: relative;
+  padding-left: 1.05em;
+  font-size: 0.6em;
+  color: var(--muted);
+}
+
+.checklist li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.28em;
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 0.14em;
+  background: var(--accent);
+}
+
+.checklist--ok li::before {
+  background: var(--ok);
+}
+
+.reveal .slide-number {
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.5em;
+}
+
+.reveal .progress {
+  color: var(--accent);
+  height: 4px;
+}
+
+.reveal .controls {
+  color: var(--accent);
+}

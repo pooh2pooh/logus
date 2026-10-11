@@ -1,0 +1,30 @@
+{
+  "name": "logus-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PWA для конечного клиента: прозрачность и управление заказами с разных электронных площадок",
+  "workspaces": [
+    "web"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace web",
+    "dev:php": "php -S 127.0.0.1:8090",
+    "dev": "npm run dev:web",
+    "build": "npm run build:web && npm run build:icons && npm run build:shell && npm run build:pres",
+    "build:web": "npm run build --workspace web",
+    "build:icons": "bash scripts/make-icons.sh",
+    "build:shell": "node scripts/build-shell.mjs",
+    "build:pres": "node scripts/build-presentation.mjs",
+    "typecheck": "npm run typecheck --workspace web",
+    "test": "node tests/run.mjs",
+    "test:shell": "node tests/e2e/test-shell.cjs",
+    "test:e2e": "node tests/run.mjs base empty error slow mobile"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "reveal.js": "^6.0.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

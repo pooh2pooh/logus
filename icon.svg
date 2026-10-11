@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Logus Nova">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a6fd8"/>
+      <stop offset="1" stop-color="#2456bd"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M104 168h184v152H104z"/>
+    <path d="M288 224h68l52 52v44h-120"/>
+    <circle cx="168" cy="340" r="30"/>
+    <circle cx="336" cy="340" r="30"/>
+  </g>
+</svg>

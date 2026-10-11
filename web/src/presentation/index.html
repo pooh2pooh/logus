@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Logus Nova — Единый кабинет клиента (отборочная презентация)</title>
+    <link rel="icon" type="image/svg+xml" href="./assets/icon.svg" />
+    <link rel="stylesheet" href="./assets/reveal.css" />
+    <link rel="stylesheet" href="./assets/theme.css" />
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <!-- Слайд 1. Титул -->
+        <section class="title-slide">
+          <div class="title-hero">
+            <div class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 5h12v11H2z" />
+                <path d="M14 9h4l4 4v3h-8" />
+                <circle cx="6.5" cy="18.5" r="1.8" />
+                <circle cx="17.5" cy="18.5" r="1.8" />
+              </svg>
+            </div>
+            <span class="eyebrow">Logus Nova · отборочный этап</span>
+          </div>
+
+          <h1>Единый кабинет клиента: прозрачные статусы и управление заказами с любых электронных площадок</h1>
+          <p class="lead">
+            Один интерфейс поверх существующих площадок: клиент видит и управляет всеми перевозками
+            в одном месте — без замены площадок и без ручного сбора статусов.
+          </p>
+
+          <div class="meta">
+            <span class="pill pill--accent">Команда № ___</span>
+            <span class="pill">Вуз, город — ___</span>
+            <span class="pill">Тема: автоматизация цепи поставок</span>
+          </div>
+
+          <div class="slide-footer"><span>Logus Nova</span><span>Отборочная презентация · 5 слайдов</span></div>
+        </section>
+
+        <!-- Слайд 2. Идея проекта -->
+        <section>
+          <h3>Идея проекта</h3>
+          <h2>Единое окно для заказов, размещённых на разных площадках</h2>
+
+          <div class="two-col">
+            <div>
+              <p class="muted" style="font-size: 0.62em">
+                Клиент размещает заказы на ATI.SU, Loginet и собственной площадке, но статусы живут
+                в разных кабинетах. Итог — звонки логистам, потерянные отклонения и ручной контроль.
+              </p>
+
+              <div class="flow">
+                <div class="node"><b>Площадки</b><span>ATI · Loginet · своя</span></div>
+                <div class="arrow">&rarr;</div>
+                <div class="node card--accent"><b>Кабинет Logus</b><span>единая модель + действия</span></div>
+                <div class="arrow">&rarr;</div>
+                <div class="node"><b>Клиент</b><span>статусы и управление 24/7</span></div>
+              </div>
+
+              <div class="grid grid--2" style="margin-top: 0.5em">
+                <div class="card">
+                  <h4>Участники</h4>
+                  <p>Грузоотправитель (клиент), электронные площадки, перевозчик, логист/диспетчер.</p>
+                </div>
+                <div class="card">
+                  <h4>Участок цепи поставок</h4>
+                  <p>От размещения заказа до выгрузки и закрытия документов — контроль исполнения.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid" style="gap: 0.45em">
+              <div class="card card--accent">
+                <h4>Уникальность</h4>
+                <p>Не заменяем площадки, а объединяем их: слой адаптеров приводит заказы к единому виду,
+                а клиент работает в одном PWA-кабинете на любом устройстве.</p>
+              </div>
+              <div class="card">
+                <h4>Как взаимодействуют</h4>
+                <p>Коннектор площадки → канонический заказ → статусы и история → действия клиента
+                (подтверждение, изменение, проблема, документы) возвращаются в процесс.</p>
+              </div>
+              <div class="card">
+                <h4>Что решает</h4>
+                <p>Убирает «слепую зону» между площадкой и клиентом: единый статус, история событий,
+                реакция на отклонения без телефонных уточнений.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="slide-footer"><span>Идея проекта</span><span>2 / 5</span></div>
+        </section>
+
+        <!-- Слайд 3. Преимущества и ограничения -->
+        <section>
+          <h3>Преимущества и ограничения</h3>
+          <h2>Заметная выгода при честных ограничениях</h2>
+
+          <div class="grid grid--3">
+            <div class="card card--ok">
+              <h4>Основные выгоды</h4>
+              <ul class="checklist checklist--ok">
+                <li>Все заказы и статусы — в одном списке</li>
+                <li>Меньше звонков и ручных уточнений</li>
+                <li>Быстрая реакция на отклонения «план–факт»</li>
+                <li>Документы и история под рукой</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h4>Сильные стороны решения</h4>
+              <ul class="checklist">
+                <li>Не заменяет площадки — работает поверх них</li>
+                <li>Новая площадка = новый адаптер</li>
+                <li>PWA: офлайн-оболочка, установка на телефон</li>
+                <li>Простой стек: PHP + статика, низкие затраты</li>
+              </ul>
+            </div>
+
+            <div class="card card--danger">
+              <h4>Риски и ограничения</h4>
+              <ul class="checklist">
+                <li>Доступность и лимиты API площадок</li>
+                <li>Различия моделей данных и статусов</li>
+                <li>Разграничение прав и авторизация клиента</li>
+                <li>Задержки синхронизации; на отборе — демо-данные</li>
+              </ul>
+            </div>
+          </div>
+
+          <p class="muted" style="font-size: 0.5em; margin-top: 0.6em">
+            Смягчение рисков: слой адаптеров, кэш и деградация без падения, понятный контракт ошибок,
+            поэтапное подключение площадок.
+          </p>
+
+          <div class="slide-footer"><span>Преимущества и ограничения</span><span>3 / 5</span></div>
+        </section>
+
+        <!-- Слайд 4. План внедрения -->
+        <section>
+          <h3>План внедрения</h3>
+          <h2>От MVP на мок-коннекторах — к промышленной эксплуатации</h2>
+
+          <div class="timeline">
+            <div class="step">
+              <small>Октябрь</small>
+              <b>MVP</b>
+              <p>Кабинет на демо-коннекторах: единый список, статусы, действия клиента, PWA.</p>
+            </div>
+            <div class="step">
+              <small>Ноябрь–декабрь</small>
+              <b>Пилот</b>
+              <p>Подключение 1–2 площадок, реальная синхронизация, обратная связь клиента.</p>
+            </div>
+            <div class="step">
+              <small>1 квартал</small>
+              <b>Расширение</b>
+              <p>Новые площадки, роли и права, уведомления, отчётность и метрики.</p>
+            </div>
+            <div class="step">
+              <small>Далее</small>
+              <b>Масштаб</b>
+              <p>Тиражирование на клиентов, SLA, интеграции с внутренними системами.</p>
+            </div>
+          </div>
+
+          <div class="grid grid--2" style="margin-top: 0.6em">
+            <div class="card">
+              <h4>Ресурсы</h4>
+              <p>Backend-разработчик, frontend-разработчик, доступы к API площадок, сервер под PHP и статику.</p>
+            </div>
+            <div class="card">
+              <h4>Барьеры и как их преодолеваем</h4>
+              <p>Закрытые API — договоры и лимиты; разные модели — слой адаптеров; недоверие — пилот
+              с измеримым эффектом.</p>
+            </div>
+          </div>
+
+          <div class="slide-footer"><span>План внедрения</span><span>4 / 5</span></div>
+        </section>
+
+        <!-- Слайд 5. Ожидаемый результат -->
+        <section>
+          <h3>Ожидаемый результат</h3>
+          <h2>Прозрачность и управление заказами в одном окне</h2>
+
+          <div class="two-col">
+            <div>
+              <div class="card card--accent">
+                <h4>Главный эффект</h4>
+                <p>Клиент видит весь процесс перевозки и управляет им из одного кабинета — снижаются
+                трудозатраты на контроль и время реакции на отклонения.</p>
+              </div>
+              <div class="card" style="margin-top: 0.5em">
+                <h4>Критерии завершения и приёмки</h4>
+                <ul class="checklist checklist--ok">
+                  <li>Все заказы клиента из подключённых площадок — в одном списке</li>
+                  <li>Действия клиента применяются и отражаются в статусе</li>
+                  <li>Синхронизация укладывается в целевой SLA</li>
+                </ul>
+              </div>
+            </div>
+
+            <div>
+              <div class="kpis">
+                <div class="kpi"><b>100%</b><span>заказов отображаются</span></div>
+                <div class="kpi"><b>&lt; 5 мин</b><span>целевая синхронизация</span></div>
+                <div class="kpi"><b>−40%</b><span>звонков по статусам</span></div>
+                <div class="kpi"><b>NPS</b><span>рост лояльности клиента</span></div>
+              </div>
+              <div class="card" style="margin-top: 0.55em">
+                <h4>Показатели достижения</h4>
+                <p>Доля заказов с актуальным статусом, среднее время реакции на проблему, количество
+                площадок на одного клиента, активность использования кабинета.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="slide-footer"><span>Ожидаемый результат</span><span>5 / 5</span></div>
+        </section>
+      </div>
+    </div>
+
+    <script src="./assets/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        slideNumber: "c/t",
+        controls: true,
+        progress: true,
+        center: false,
+        transition: "slide",
+        width: 1100,
+        height: 700,
+        margin: 0.05,
+        pdfSeparateFragments: false,
+      });
+    </script>
+  </body>
+</html>

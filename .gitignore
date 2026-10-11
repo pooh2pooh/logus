@@ -1,0 +1,18 @@
+node_modules/
+web/dist/
+*.log
+.DS_Store
+
+# Сгенерированные артефакты сборки (пересобираются из web/src)
+# Ведущий слэш обязателен: иначе правило скрывает и исходники web/src/presentation.
+/assets/
+/index.html
+/shell-config.js
+/presentation/
+
+# Секреты и кэши (см. private/.gitignore)
+private/secrets.php
+private/cache/
+private/asset-cache/
+private/diag/
+tests/.tmp/
