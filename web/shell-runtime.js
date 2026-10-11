@@ -5,7 +5,9 @@
  * классическим <script> с текстом (IIFE). Это защищает от «вечной загрузки»
  * в Яндекс.Браузере, когда тег ресурса не шлёт ни load, ни error.
  *
- * Цепочка источников: localStorage (мгновенно) → api.php?action=asset → статика.
+ * Цепочка источников: localStorage (мгновенно) → api.php?action=asset → статика
+ * (fetch) → нативный <script src>. Последний шаг не использует fetch и чтение
+ * потока, поэтому выручает там, где тело fetch-ответа зависает.
  * У каждого шага — свой дедлайн на заголовки И отдельно на тело; сверху общий
  * сторож прогресса. Итог всегда один из двух: приложение готово либо заглушка
  * с кнопкой «Повторить». Промежуточного «висит спиннер навсегда» нет.
@@ -89,32 +91,29 @@
   }
 
   // --------------------------------------------------------------- network
-  function readBody(res, ms) {
-    return new Promise(function (resolve, reject) {
-      var done = false;
-      var timer = setTimeout(function () {
-        if (done) return;
-        done = true;
-        try { if (res && res.body && res.body.cancel) res.body.cancel(); } catch (e) {}
-        reject(new Error("таймаут чтения тела " + ms + "мс"));
-      }, ms);
-      res.text().then(
-        function (t) { if (!done) { done = true; clearTimeout(timer); resolve(t); } },
-        function (e) { if (!done) { done = true; clearTimeout(timer); reject(e); } },
-      );
-    });
-  }
-
+  // Один AbortController покрывает и заголовки, и тело: по таймауту прерываем
+  // сам fetch, а не пытаемся отменить уже заблокированный res.text() поток
+  // (это давало unhandledrejection «Cannot cancel a locked stream»).
   function fetchText(url, headerMs, bodyMs) {
     var ctrl = new AbortController();
+    var phase = "ожидания заголовков";
     var timer = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, headerMs);
     return fetch(url, { signal: ctrl.signal, cache: "no-store", credentials: "same-origin" })
       .then(function (res) {
         clearTimeout(timer);
         if (!res || !res.ok) throw new Error("HTTP " + (res ? res.status : "?"));
-        return readBody(res, bodyMs);
-      }, function (err) {
+        phase = "чтения тела";
+        timer = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, bodyMs);
+        return res.text().then(
+          function (t) { clearTimeout(timer); return t; },
+          function (e) { clearTimeout(timer); throw e; },
+        );
+      })
+      .catch(function (err) {
         clearTimeout(timer);
+        if (err && err.name === "AbortError") {
+          throw new Error("таймаут " + phase);
+        }
         throw err;
       });
   }
@@ -202,6 +201,44 @@
     );
   }
 
+  // Последний источник — настоящий <script src>. Он не использует fetch и
+  // чтение потока, поэтому работает там, где тело fetch-ответа зависает
+  // (посредники, старые движки). Бандл — IIFE, поэтому тег исполняется как есть.
+  function tryNativeScript(done) {
+    if (!JS) { done(false); return; }
+    write("net", "→ script " + JS);
+    var script = document.createElement("script");
+    var settled = false;
+    var timer = setTimeout(function () {
+      if (settled) return;
+      settled = true;
+      write("warn", "script не ответил за " + BODY_TIMEOUT + "мс");
+      done(false);
+    }, BODY_TIMEOUT);
+    script.async = true;
+    script.src = JS;
+    script.onload = function () {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (window.__LOGUS_APP_MOUNTED__) {
+        markReady("script");
+        done(true);
+      } else {
+        write("warn", "script загрузился, но приложение не смонтировалось");
+        done(false);
+      }
+    };
+    script.onerror = function () {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      write("error", "script не загрузился");
+      done(false);
+    };
+    document.head.appendChild(script);
+  }
+
   // --------------------------------------------------------------- fallback
   function fallback(code, detail) {
     if (ready) return;
@@ -250,6 +287,9 @@
   function end() {
     var overlay = document.getElementById("shell-overlay");
     if (overlay) overlay.classList.add("is-hidden");
+    // Нативный <script> мог догрузиться уже после показа заглушки — убираем её.
+    var fallbackBox = document.getElementById("shell-fallback");
+    if (fallbackBox) fallbackBox.classList.add("is-hidden");
     document.body.classList.remove("shell-busy");
     var toggle = document.getElementById("shell-log-toggle");
     if (toggle) toggle.classList.remove("is-hidden");
@@ -320,7 +360,10 @@
       tryAsset(function (ok2) {
         if (ok2) return;
         tryStatic(function (ok3) {
-          if (!ok3) fallback("APP_LOAD_FAILED", "Ни один источник не отдал бандл");
+          if (ok3) return;
+          tryNativeScript(function (ok4) {
+            if (!ok4) fallback("APP_LOAD_FAILED", "Ни один источник не отдал бандл");
+          });
         });
       });
     });

@@ -1,8 +1,8 @@
 /*
  * Юнит-тесты упрощённого shell-загрузчика (без браузера), документ §11.
- * Проверяем цепочку источников localStorage → api.php?action=asset → статика,
- * обязательные таймауты на заголовки и тело, общий сторож прогресса, единый
- * терминальный лог и аварийную заглушку.
+ * Проверяем цепочку источников localStorage → api.php?action=asset → статика →
+ * нативный <script src>, обязательные таймауты на заголовки и тело, общий сторож
+ * прогресса, единый терминальный лог и аварийную заглушку.
  */
 const fs = require("node:fs");
 const path = require("node:path");
@@ -67,9 +67,9 @@ function makeEl(tag) {
   return el;
 }
 
-function makeEnv({ ls = {}, asset = "./api.php?action=asset", diag = "", assetOk = true, assetHangHeaders = false, assetHangBody = false, staticOk = true, staticHangHeaders = false, headerMs = 120, bodyMs = 120, watchdogMs = 1500, mount = true, ready = false, earlyErrors = [] } = {}) {
+function makeEnv({ ls = {}, asset = "./api.php?action=asset", diag = "", assetOk = true, assetHangHeaders = false, assetHangBody = false, staticOk = true, staticHangHeaders = false, staticHangBody = false, nativeScript = "error", headerMs = 120, bodyMs = 120, watchdogMs = 1500, mount = true, ready = false, earlyErrors = [] } = {}) {
   const storage = new Map(Object.entries(ls));
-  const yielded = { scripts: [] };
+  const yielded = { scripts: [], nativeScripts: [] };
   const fetchCalls = [];
   const listeners = {};
   const els = {
@@ -120,9 +120,28 @@ function makeEnv({ ls = {}, asset = "./api.php?action=asset", diag = "", assetOk
     return node;
   };
 
+  // <head> принимает нативный <script src>. nativeScript задаёт исход загрузки:
+  // "ok" — main.tsx выполнился (mount) и шлёт onload; "error" — onerror;
+  // "hang" — ни load, ни error (проверка таймаута).
+  const head = makeEl("head");
+  head.appendChild = (node) => {
+    if (node && node.tagName === "SCRIPT" && node.src) {
+      yielded.scripts.push(node);
+      yielded.nativeScripts.push(node);
+      if (nativeScript === "ok") {
+        windowObj.__LOGUS_APP_MOUNTED__ = true;
+        setTimeout(() => { if (node.onload) node.onload(); }, 0);
+      } else if (nativeScript === "error") {
+        setTimeout(() => { if (node.onerror) node.onerror(); }, 0);
+      }
+    }
+    return node;
+  };
+
   const documentObj = {
     readyState: "complete",
     body,
+    head,
     createElement: makeEl,
     getElementById: (id) => els[id] || (els[id] = makeEl("div")),
     addEventListener() {},
@@ -150,14 +169,26 @@ function makeEnv({ ls = {}, asset = "./api.php?action=asset", diag = "", assetOk
         }
       });
 
+    const hangBody = () =>
+      new Promise((_, reject) => {
+        if (signal) {
+          signal.addEventListener("abort", () => {
+            const err = new Error("aborted");
+            err.name = "AbortError";
+            reject(err);
+          });
+        }
+      });
+
     if (String(url).includes("action=asset")) {
       if (assetHangHeaders) return hang();
       if (!assetOk) return Promise.resolve({ ok: false, status: 500, text: async () => "" });
-      if (assetHangBody) return Promise.resolve({ ok: true, status: 200, text: () => new Promise(() => {}) });
+      if (assetHangBody) return Promise.resolve({ ok: true, status: 200, text: () => hangBody() });
       return Promise.resolve({ ok: true, status: 200, text: async () => BODY });
     }
     // статика
     if (staticHangHeaders) return hang();
+    if (staticHangBody) return Promise.resolve({ ok: true, status: 200, text: () => hangBody() });
     if (!staticOk) return Promise.resolve({ ok: false, status: 404, text: async () => "" });
     return Promise.resolve({ ok: true, status: 200, text: async () => BODY });
   };
@@ -205,6 +236,14 @@ function check(name, ok) {
 }
 
 (async () => {
+  // 0. Регресс: таймауты прерывают fetch через AbortController, а не отменяют уже
+  //    заблокированный поток (иначе unhandledrejection «locked stream»).
+  {
+    check("нет отмены заблокированного потока (body.cancel)", !/body\s*\.\s*cancel/.test(runtime));
+    check("таймаут тела реализован через AbortError", /AbortError/.test(runtime));
+    check("есть резервный источник <script src>", /tryNativeScript/.test(runtime));
+  }
+
   // 1. Нет кэша → бандл берётся через api.php?action=asset и выполняется инлайном.
   {
     const env = makeEnv({});
@@ -243,12 +282,27 @@ function check(name, ok) {
     check("таймаут чтения тела asset переключает на статику", env.windowObj.__LOGUS_LOADER__.isReady() && !env.fallbackVisible);
   }
 
-  // 6. Все источники недоступны → аварийная заглушка с кодом и кнопкой «Повторить».
+  // 5b. Тело статики «виснет» → подхватывает нативный <script src>, приложение готово.
   {
-    const env = makeEnv({ assetOk: false, staticOk: false });
-    await wait(120);
+    const env = makeEnv({ assetOk: false, staticHangBody: true, nativeScript: "ok" });
+    await wait(260);
+    check("при зависании тела статики вставлен <script src>", env.yielded.nativeScripts.length === 1 && env.yielded.nativeScripts[0].src === JS);
+    check("нативный <script src> доводит приложение до готовности", env.windowObj.__LOGUS_LOADER__.isReady() && !env.fallbackVisible);
+  }
+
+  // 6. Все источники недоступны (fetch + script) → заглушка с кодом и «Повторить».
+  {
+    const env = makeEnv({ assetOk: false, staticOk: false, nativeScript: "error" });
+    await wait(220);
     check("при недоступности всех источников показана заглушка", env.fallbackVisible);
     check("причина APP_LOAD_FAILED записана в лог", env.logText.includes("APP_LOAD_FAILED"));
+  }
+
+  // 6b. <script src> не шлёт ни load, ни error → таймаут → заглушка.
+  {
+    const env = makeEnv({ assetOk: false, staticOk: false, nativeScript: "hang" });
+    await wait(280);
+    check("зависший <script src> приводит к заглушке по таймауту", env.fallbackVisible);
   }
 
   // 7. Общий сторож прогресса: источники «висят» дольше сторожа → APP_TIMEOUT.
@@ -275,7 +329,7 @@ function check(name, ok) {
   // 10. restart() показывает оверлей, прячет заглушку и перезагружает страницу.
   {
     const env = makeEnv({ assetOk: false, staticOk: false });
-    await wait(120);
+    await wait(220);
     env.windowObj.__LOGUS_LOADER__.restart();
     check("restart() перезагружает страницу", env.windowObj._reloaded === true);
   }

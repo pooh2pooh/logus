@@ -213,16 +213,40 @@ npm run build:pres
 Откройте `presentation/index.html`. Для PDF — добавьте `?print-pdf` и сохраните
 через «Печать → Сохранить как PDF».
 
-## Деплой
+## Деплой (Apache)
 
-- Загрузите содержимое репозитория в webroot хостинга (Apache с `.htaccess`):
-  `api.php`, `sw.js`, `site.webmanifest`, иконки, `index.html` и `assets/`.
-- Каталог **`private/` по возможности разместите вне webroot** или оставьте в нём —
-  доступ к нему закрыт `private/.htaccess` (`Require all denied`). В нём лежат
-  `secrets.php`, seed-данные, кэши и диагностика.
-- Права: `private/` — `0700`, `secrets.php` — `0600`.
-- `.htaccess` в корне отключает переупаковку JS/CSS (важно для Яндекс.Браузера)
-  и выставляет заголовки безопасности; критичные заголовки дублирует `api.php`.
+1. Соберите артефакты: `npm install && npm run build`. В webroot положите:
+   `index.html`, `assets/`, `presentation/`, `api.php`, `sw.js`, `site.webmanifest`,
+   иконки, `.htaccess` и каталог `private/`.
+2. Секреты: `cp private/secrets.example.php private/secrets.php` и заполните.
+3. Права: `private/` (его подкаталоги `cache/`, `asset-cache/`, `diag/` — на запись)
+   — `0700`, `secrets.php` — `0600`, владелец — пользователь веб-сервера.
+4. Каталог **`private/` физически лежит рядом с `api.php`** (пути в коде идут от
+   `__DIR__`), поэтому доступ закрывается `private/.htaccess` (`Require all denied`)
+   **или** блоком `<Directory .../private> Require all denied </Directory>` в vhost.
+   Для `.htaccess` нужен `AllowOverride` ≥ `FileInfo` (`AuthConfig` для запрета).
+5. `AddType application/manifest+json .webmanifest`; модуль `mod_headers` обязателен.
+   `.htaccess` отключает переупаковку/сжатие JS/CSS (критично для Яндекс.Браузера)
+   и выставляет `Service-Worker-Allowed: /` для `sw.js`.
+6. HTTPS обязателен для service worker и установки PWA (исключение — `localhost`).
+
+### Если curl быстрый, а браузер «зависает» на загрузке
+
+Загрузчик перебирает источники `localStorage → api.php?action=asset → статика (fetch)
+→ <script src>`. Последний, нативный `<script src>`, не использует `fetch` и чтение
+потока и выручает, если посредник/старый движок «подвешивает» тело fetch-ответа.
+Проверка сервера:
+
+```bash
+curl -sSI https://host/.../sw.js | grep -i service-worker
+curl -s -o /dev/null -w '%{http_code} %{size_download} %{time_total}\n' \
+  https://host/.../assets/app-<hash>.js
+curl -sS 'https://host/.../api.php?action=asset&f=app-<hash>.js' | head -c 80
+```
+
+Если curl отдаёт файл мгновенно, а браузер нет — дело в клиенте/посреднике; нативный
+фолбэк должен закрыть сценарий. Старый service worker можно сбросить в DevTools →
+Application → Service Workers → Unregister.
 
 ## Ограничения отборочного этапа
 
