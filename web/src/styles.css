@@ -162,15 +162,43 @@ a { color: var(--accent); }
 .container { width: min(920px, 100%); margin: 0 auto; padding: 16px; flex: 1; }
 .section-title { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
 
-.summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
-.summary__card {
-  border: 1px solid var(--edge); border-radius: 12px; padding: 12px;
+/* Сводка — интерактивная кольцевая диаграмма (не «кликабельные» карточки). */
+.summary {
+  display: grid; grid-template-columns: 180px 1fr; gap: 18px; align-items: center;
+  margin-bottom: 16px; padding: 16px;
+  border: 1px solid var(--border); border-radius: 16px;
   background: var(--panel-face); box-shadow: var(--shadow-inset), var(--shadow-sm);
 }
-.summary__card b { display: block; font-size: 22px; line-height: 1.1; }
-.summary__card span { font-size: 12px; color: var(--muted); }
-.summary__card--danger b { color: var(--danger-text); }
-.summary__card--ok b { color: var(--ok); }
+.summary__chart { display: grid; place-items: center; }
+.summary__donut { width: 170px; height: 170px; animation: fade .4s ease; }
+.summary__track { fill: none; stroke: var(--surface-3); stroke-width: 20; }
+.summary__seg {
+  fill: none; stroke-width: 20; stroke-linecap: butt; opacity: .92;
+  transform: rotate(-90deg); transform-origin: 80px 80px;
+  transition: stroke-width .25s ease, opacity .25s ease, filter .25s ease;
+}
+.summary__seg.is-active { stroke-width: 27; opacity: 1; filter: drop-shadow(0 0 5px currentColor); }
+.summary__seg.is-dim { opacity: .28; }
+.summary__center { text-anchor: middle; }
+.summary__value { fill: var(--text); font-size: 30px; font-weight: 700; }
+.summary__caption { fill: var(--muted); font-size: 11px; }
+.summary__pct { fill: var(--accent); font-size: 11px; font-weight: 600; }
+
+.summary__legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.summary__legend li { min-width: 0; }
+.summary__legend button {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 10px; cursor: pointer;
+  border: 1px solid transparent; background: transparent; color: var(--text); text-align: left;
+  transition: background .15s ease, border-color .15s ease;
+}
+.summary__legend button:hover { background: var(--highlight); border-color: var(--border); }
+.summary__legend button:focus-visible { outline: none; background: var(--highlight); box-shadow: 0 0 0 3px var(--accent-ring); }
+.summary__legend button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.summary__dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.summary__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.summary__count { font-size: 15px; }
+.summary__share { flex: none; width: 36px; text-align: right; font-size: 12px; color: var(--muted); }
 
 /* ---------------------------------------------------------------- controls */
 .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
@@ -184,14 +212,18 @@ a { color: var(--accent); }
 .field select { appearance: none; cursor: pointer; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+/* Кнопки-площадки: явно кнопочная «фейсовая» поверхность и тень, чтобы
+   читались как кликабельные (раньше выглядели как статичные плашки). */
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 999px; cursor: pointer;
-  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
-  transition: background .15s ease, color .15s ease, border-color .15s ease;
+  padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13.5px;
+  border: 1px solid var(--border); background: var(--btn-face); color: var(--text);
+  box-shadow: var(--shadow-inset), var(--shadow-sm);
+  transition: background .15s ease, color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .1s ease;
 }
-.chip:hover { color: var(--text); border-color: var(--accent); }
-.chip[aria-pressed="true"] { background: var(--accent-soft); color: var(--text); border-color: var(--accent); }
+.chip:hover { background: var(--btn-face-hover); border-color: var(--accent); }
+.chip:active { background: var(--btn-face-active); box-shadow: inset 0 2px 5px rgba(0,0,0,.35); transform: translateY(1px); }
+.chip[aria-pressed="true"] { background: var(--btn-accent); color: var(--on-accent); border-color: var(--accent-strong); }
 .chip__count { font-size: 11px; opacity: .8; }
 .chip:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-ring); }
 
@@ -362,7 +394,8 @@ a { color: var(--accent); }
   /* Те же боковые отступы, что у шапки (16px) — контент выровнен по сетке. */
   .container { padding: 16px; }
   .topbar__title span { display: none; }
-  .summary { grid-template-columns: repeat(2, 1fr); }
+  .summary { grid-template-columns: 1fr; justify-items: center; }
+  .summary__legend { width: 100%; }
 
   /* Ключ-значение в одну колонку: длинные адреса не зажимаются в половину. */
   .kv { grid-template-columns: 1fr; }
