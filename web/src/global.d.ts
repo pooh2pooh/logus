@@ -17,8 +17,16 @@ interface ShellLoader {
   isReady(): boolean;
 }
 
+interface ShellMirrors {
+  js?: string[];
+  css?: string[];
+  proxies?: string[];
+}
+
 interface Window {
   __APP_READY__?: boolean;
   __LOGUS_APP_MOUNTED__?: boolean;
   __LOGUS_LOADER__?: ShellLoader;
+  __LOGUS_SHELL_CONFIG__?: Record<string, unknown>;
+  __LOGUS_SHELL_MIRRORS__?: ShellMirrors;
 }

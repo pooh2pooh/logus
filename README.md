@@ -167,8 +167,9 @@ node tests/run.mjs --list       # список сценариев
 api.php                # весь бэкенд: сессия, кэш, адаптеры площадок, действия, роутер
 sw.js                  # service worker (PWA, офлайн-оболочка)
 site.webmanifest       # манифест PWA
-index.html             # ПРОДУКТ СБОРКИ: shell-загрузчик (генерируется)
-assets/                # ПРОДУКТ СБОРКИ: бандл app-*.js / app-*.css
+index.html             # ПРОДУКТ СБОРКИ (коммитится): shell-загрузчик
+shell-config.js        # ПРОДУКТ СБОРКИ (коммитится): зеркала/прокси
+assets/                # ПРОДУКТ СБОРКИ (коммитится): бандл app-*.js / app-*.css
 private/               # вне git: секреты, seed-данные, кэши, диагностика
   seed.php             #   mock-заказы площадок
   secrets.php          #   учётные данные (не коммитится)
@@ -185,22 +186,32 @@ presentation/          # ПРОДУКТ СБОРКИ: самодостаточн
 docs/DEVELOPMENT.md    # стандарт разработки проекта
 ```
 
-Артефакты сборки (`index.html`, `assets/`, `presentation/assets/`) в git не хранятся
-и пересобираются командой `npm run build`.
+В git **коммитятся** `index.html`, `shell-config.js` и `assets/app-*.js|css`
+(карты `assets/*.map` — игнорируются): без них jsDelivr-зеркала отдают 404.
+После каждой сборки артефакты нужно запушить. Презентация (`presentation/`)
+публикуется отдельно.
 
 ## Отказоустойчивая загрузка
 
-В `index.html` **нет тега `<script src>` основного бандла** — это защищает от
-«вечной загрузки» в Яндекс.Браузере, когда скрипт не шлёт ни `load`, ни `error`.
+В `index.html` **нет статического тега `<script src>` основного бандла** — загрузчик
+подключает его сам и умеет перебирать резервы, что защищает от «вечной загрузки» в
+Яндекс.Браузере, когда скрипт не шлёт ни `load`, ни `error`.
 Загрузчик (`web/shell-runtime.js`) сам перебирает источники по цепочке:
 
 1. локальная копия бандла в `localStorage` (мгновенно);
-2. `api.php?action=asset` (серверная отдача из кэша);
-3. статика `./assets/app-*.js`.
+2. основной источник: `api.php?action=asset` (gzip) или статика `./assets/app-*.js`;
+3. **CDN-зеркала jsDelivr** (и их CORS-прокси) — тот же бандл с другого домена,
+   поэтому грузится даже там, где origin без VPN тормозит/блокируется;
+4. Range-куски (`206`) — для движков, «вешающих» большое тело;
+5. `fetch` + инлайн-инъекция бандла.
 
 У каждого шага есть таймаут на заголовки и отдельно на тело ответа, сверху — общий
 сторож прогресса. Итог всегда определён: приложение загружено **или** заглушка с
 кнопкой «Повторить». Подробности — в [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) §3.
+
+> **Зеркала требуют пуша:** после `npm run build` закоммитьте и запушьте
+> `assets/`, `shell-config.js`, `index.html` — jsDelivr отдаёт файлы из git.
+> Проверка: `curl -s -o /dev/null -w "%{http_code}" https://cdn.jsdelivr.net/gh/<owner>/<repo>@<branch>/assets/<file>` → `200`.
 
 ## Презентация
 
@@ -216,8 +227,10 @@ npm run build:pres
 ## Деплой (Apache)
 
 1. Соберите артефакты: `npm install && npm run build`. В webroot положите:
-   `index.html`, `assets/`, `presentation/`, `api.php`, `sw.js`, `site.webmanifest`,
-   иконки, `.htaccess` и каталог `private/`.
+   `index.html`, `shell-config.js`, `assets/`, `presentation/`, `api.php`, `sw.js`,
+   `site.webmanifest`, иконки, `.htaccess` и каталог `private/`.
+   Не забудьте закоммитить и запушить `assets/`, `shell-config.js`, `index.html` —
+   иначе CDN-зеркала jsDelivr (нужны для работы без VPN) отдадут 404.
 2. Секреты: `cp private/secrets.example.php private/secrets.php` и заполните.
 3. Права: `private/` (его подкаталоги `cache/`, `asset-cache/`, `diag/` — на запись)
    — `0700`, `secrets.php` — `0600`, владелец — пользователь веб-сервера.
@@ -232,21 +245,23 @@ npm run build:pres
 
 ### Если curl быстрый, а браузер «зависает» на загрузке
 
-Загрузчик перебирает источники `localStorage → api.php?action=asset → статика (fetch)
-→ <script src>`. Последний, нативный `<script src>`, не использует `fetch` и чтение
-потока и выручает, если посредник/старый движок «подвешивает» тело fetch-ответа.
-Проверка сервера:
+Загрузчик перебирает источники `localStorage → api.php?action=asset → CDN-зеркала
+(jsDelivr/прокси) → статика → Range-куски → fetch`. Если origin без VPN тормозит,
+бандл должен прийти с зеркала (другой домен). Проверка:
 
 ```bash
+# зеркало отвечает 200 (после пуша артефактов)
+curl -s -o /dev/null -w '%{http_code}\n' \
+  https://cdn.jsdelivr.net/gh/<owner>/<repo>@<branch>/assets/app-<hash>.js
 curl -sSI https://host/.../sw.js | grep -i service-worker
 curl -s -o /dev/null -w '%{http_code} %{size_download} %{time_total}\n' \
   https://host/.../assets/app-<hash>.js
 curl -sS 'https://host/.../api.php?action=asset&f=app-<hash>.js' | head -c 80
 ```
 
-Если curl отдаёт файл мгновенно, а браузер нет — дело в клиенте/посреднике; нативный
-фолбэк должен закрыть сценарий. Старый service worker можно сбросить в DevTools →
-Application → Service Workers → Unregister.
+Если curl отдаёт файл мгновенно, а браузер нет — дело в клиенте/посреднике; зеркала
+на другом домене должны закрыть сценарий. Старый service worker можно сбросить в
+DevTools → Application → Service Workers → Unregister.
 
 ## Ограничения отборочного этапа
 

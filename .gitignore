@@ -3,12 +3,18 @@ web/dist/
 *.log
 .DS_Store
 
-# Сгенерированные артефакты сборки (пересобираются из web/src)
-# Ведущий слэш обязателен: иначе правило скрывает и исходники web/src/presentation.
-/assets/
-/index.html
-/shell-config.js
+# Артефакты сборки, которые КОММИТЯТСЯ: их раздаёт jsDelivr как зеркала
+# (gh/<repo>@<branch>/assets/...). После сборки их нужно пушить — иначе
+# зеркало вернёт 404 и загрузчик уйдёт на медленный origin.
+#   /assets/app-<hash>.js|css  — сам бандл
+#   /shell-config.js           #  зеркала/прокси (генерируется build-shell)
+#   /index.html                # shell-загрузчик
+# Карты не коммитим — зеркалам они не нужны.
+/assets/*.map
+
+# Локальная презентация — не нужна для зеркал и публикуется отдельно.
 /presentation/
+
 
 # Секреты и кэши (см. private/.gitignore)
 private/secrets.php

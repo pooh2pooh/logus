@@ -979,9 +979,50 @@ function action_asset(): never
     header('X-Content-Type-Options: nosniff');
     header('Vary: Accept-Encoding');
     header('ETag: ' . $etag);
+    header('Accept-Ranges: bytes');
 
     if (trim((string) ($_SERVER['HTTP_IF_NONE_MATCH'] ?? '')) === $etag) {
         http_response_code(304);
+        exit;
+    }
+
+    // Отдача Range-кусками: движки (Яндекс.Браузер) могут «вешать» большое
+    // тело (200 и верный Content-Length приходят, байты — нет), тогда как
+    // маленькие ответы ~8 КБ доезжают. Загрузчик собирает бандл по кускам.
+    $range = trim((string) ($_SERVER['HTTP_RANGE'] ?? ''));
+    if ($range !== '' && preg_match('/^bytes=(\d*)-(\d*)$/', $range, $m) === 1) {
+        $len = strlen($body);
+        $startTxt = $m[1];
+        $endTxt = $m[2];
+        if ($startTxt === '' && $endTxt === '') {
+            fail(416, 'RANGE_INVALID', 'Недопустимый диапазон');
+        }
+        if ($startTxt === '') {
+            $suffix = (int) $endTxt;
+            if ($suffix <= 0) {
+                fail(416, 'RANGE_INVALID', 'Недопустимый диапазон');
+            }
+            $start = max(0, $len - $suffix);
+            $end = $len - 1;
+        } else {
+            $start = (int) $startTxt;
+            $end = $endTxt === '' ? $len - 1 : (int) $endTxt;
+            $end = min($end, $len - 1);
+        }
+        if ($start > $len - 1) {
+            header('Content-Range: bytes */' . $len);
+            http_response_code(416);
+            exit;
+        }
+        if ($start > $end) {
+            $end = $start;
+        }
+        $partLen = $end - $start + 1;
+
+        http_response_code(206);
+        header('Content-Range: bytes ' . $start . '-' . $end . '/' . $len);
+        header('Content-Length: ' . $partLen);
+        echo substr($body, $start, $partLen);
         exit;
     }
 

@@ -1,14 +1,19 @@
-/* Пост-обработка результата сборки Vite.
+/*
+ * Пост-обработка Vite → отказоустойчивый shell-загрузчик.
  *
- * Превращает собранный index.html в отказоустойчивый shell-загрузчик:
- *  - основной бандл НЕ прописан тегом <script src> (грузчик сам инжектит его);
- *  - цепочка источников localStorage → api.php?action=asset → статика;
- *  - терминальный лог, оверлей загрузки, заглушка с «Повторить».
+ * В HTML НЕТ тега <script src> основного бандла: загрузчик сам подключает
+ * основной источник (PHP-ассет или статику), затем перебирает резервы.
+ * Источники зеркал перечисляются в web/shell-config.js, его копия с
+ * подставленными jsDelivr-зеркалами ложится рядом с index.html.
  *
- * Упрощённый вариант без CDN-зеркал и Range-загрузки: обязательные таймауты
- * на заголовки и тело сохранены (см. web/shell-runtime.js).
+ * Зеркала нужны, когда origin (медленный/заблокированный хостинг) не отдаёт
+ * бандл без VPN: тогда тот же файл берётся с другого домена (CDN) мгновенно.
+ *
+ * !!! ВАЖНО: чтобы зеркала работали, сгенерированные assets/app-<hash>.js|css
+ * и shell-config.js НУЖНО закоммитить и запушить (jsDelivr отдаёт их из git).
  */
 import { readFileSync, writeFileSync, readdirSync, unlinkSync, statSync, existsSync } from "node:fs";
+import { execSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -42,6 +47,41 @@ const builtHtml = readFileSync(path.join(root, "index.html"), "utf8");
 const titleMatch = builtHtml.match(/<title>([^<]*)<\/title>/);
 const title = titleMatch ? titleMatch[1] : "Logus Nova";
 
+// Ветка для ссылок jsDelivr: gh/<repo>@<branch>. По умолчанию — текущая ветка
+// git, иначе MIRROR_BRANCH, иначе main. В эталоне ветка жёстко main.
+function detectBranch() {
+  if (process.env.MIRROR_BRANCH) return process.env.MIRROR_BRANCH;
+  try {
+    const b = execSync("git symbolic-ref --short HEAD", { cwd: root, encoding: "utf8" }).trim();
+    if (b) return b;
+  } catch (e) {}
+  return "main";
+}
+
+// owner/repo из git-remotes (или MIRROR_REPO). Пусто — зеркал не будет,
+// загрузчик молча уйдёт на остальные источники.
+function detectRepo() {
+  if (process.env.MIRROR_REPO) return process.env.MIRROR_REPO;
+  try {
+    const remote = execSync("git remote get-url origin", { cwd: root, encoding: "utf8" }).trim();
+    const m = /github\.com[:/]([^/]+)\/([^/]+?)(?:\.git)?$/.exec(remote);
+    if (m) return m[1] + "/" + m[2];
+  } catch (e) {}
+  return "";
+}
+
+const branch = detectBranch();
+const repo = detectRepo();
+function mirrorUrls(file) {
+  if (!repo) return [];
+  return [
+    `https://cdn.jsdelivr.net/gh/${repo}@${branch}/assets/${file}`,
+    `https://fastly.jsdelivr.net/gh/${repo}@${branch}/assets/${file}`,
+  ];
+}
+const jsMirrors = mirrorUrls(jsName);
+const cssMirrors = mirrorUrls(cssName);
+
 const runtime = readFileSync(path.join(webDir, "shell-runtime.js"), "utf8");
 
 const hasApi = existsSync(path.join(root, "api.php"));
@@ -56,8 +96,17 @@ const configInline = `window.__LOGUS_SHELL_CONFIG__ = {
   diag: ${JSON.stringify(diagEndpoint)},
   timeoutMs: 8000,
   primaryTimeoutMs: 6000,
+  fallbackGraceMs: 4000,
   postInjectTimeoutMs: 4000,
-  watchdogMs: 20000
+  readyWatchdogMs: 20000,
+  earlyFallbackMs: 1500,
+  rangeChunkBytes: 8192,
+  rangePool: 4,
+  rangeTimeoutMs: 1500,
+  rangeRetries: 6,
+  rangeRetryDelayMs: 120,
+  rangeHedgeMs: 500,
+  mirrorTimeoutMs: 5000
 };`;
 
 const icons = {
@@ -151,18 +200,27 @@ ${iconLinks}
     <button id="shell-log-toggle" class="is-hidden" type="button" aria-pressed="false">лог</button>
     <div id="shell-fallback" class="is-hidden">
       <div class="card">
-        <p>Интерфейс не удалось загрузить ни из локальной копии, ни с сервера.</p>
+        <p>Интерфейс не удалось загрузить ни из локальной копии, ни из CDN-зеркал.</p>
         <p><code id="shell-fallback-detail"></code></p>
         <p><button class="shell-btn" type="button" onclick="var L=window.__LOGUS_LOADER__;if(L&&L.restart){L.restart();}else{location.reload();}">Повторить</button></p>
       </div>
     </div>
     <noscript>Для работы интерфейса нужен включённый JavaScript.</noscript>
+    <script src="./shell-config.js"></script>
     <script>${runtime}</script>
   </body>
 </html>
 `;
 
 writeFileSync(path.join(root, "index.html"), shellHtml);
+
+// shell-config.js: подставляем зеркала в шаблон и кладём рядом с index.html.
+const templatePath = path.join(webDir, "shell-config.js");
+const template = readFileSync(templatePath, "utf8");
+const shellConfig = template
+  .replace("%%JS_MIRRORS%%", JSON.stringify(jsMirrors, null, 2))
+  .replace("%%CSS_MIRRORS%%", JSON.stringify(cssMirrors, null, 2));
+writeFileSync(path.join(root, "shell-config.js"), shellConfig);
 
 let removed = 0;
 try {
@@ -177,4 +235,5 @@ try {
   if (error.code !== "ENOENT") throw error;
 }
 
-console.log(`build-shell: собран index.html (${jsName}, ${cssName}${removed ? `, удалено ассетов: ${removed}` : ""})`);
+console.log(`build-shell: собран index.html + shell-config.js (${jsName}, ${cssName}${removed ? `, удалено ассетов: ${removed}` : ""})`);
+console.log(`build-shell: зеркала ${repo ? `→ ${repo}@${branch}` : "не найдены (нет github remote)"}`);

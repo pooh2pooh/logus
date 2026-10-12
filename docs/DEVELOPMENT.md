@@ -102,7 +102,7 @@
 
 Ключевая идея: **Shell не зависит от SPA**, а SPA не знает, как он загружен —
 общение только через глобальные флаги (`window.__APP_READY__`) и API
-(`window.__VK_LOADER__`).
+(`window.__LOGUS_LOADER__`).
 
 ### 1.2 Структура репозитория (эталон)
 
@@ -487,7 +487,7 @@ try {
 живёт строкой в конфиге:
 
 ```js
-window.__VK_SHELL_CONFIG__ = {
+window.__LOGUS_SHELL_CONFIG__ = {
   js: "./assets/app-<hash>.js",
   css: "./assets/app-<hash>.css",
   asset: "./api.php?action=asset",
@@ -735,9 +735,12 @@ if (trim((string) ($_SERVER['HTTP_IF_NONE_MATCH'] ?? '')) === $etag) {
 Сборщик извлекает `owner/repo` из `git remote get-url origin` и сам прописывает
 два jsDelivr-хоста в `shell-config.js`. Хэш в имени делает кэш CDN безопасным.
 
-> **Критично:** после сборки новые `assets/app-<hash>.js|css` **нужно
-> запушить**, иначе зеркало вернёт 404 и загрузчик молча уйдёт на Range-куски.
-> Всегда проверяй: `curl -s -o /dev/null -w "%{http_code}" https://cdn.jsdelivr.net/gh/<owner>/<repo>@main/assets/<file>`
+> **Критично:** артефакты `index.html`, `shell-config.js` и
+> `assets/app-<hash>.js|css` **коммитятся** (в `.gitignore` игнорируются только
+> `assets/*.map`), и после каждой сборки их **нужно запушить** — иначе зеркало
+> вернёт 404 и загрузчик молча уйдёт на Range-куски. Ветка в ссылках зеркал —
+> текущая git-ветка (`MIRROR_BRANCH` для переопределения).
+> Всегда проверяй: `curl -s -o /dev/null -w "%{http_code}" https://cdn.jsdelivr.net/gh/<owner>/<repo>@<branch>/assets/<file>`
 > → `200`.
 
 ### 3.11 Итог: «вечной загрузки» не бывает
@@ -745,6 +748,29 @@ if (trim((string) ($_SERVER['HTTP_IF_NONE_MATCH'] ?? '')) === $etag) {
 Загрузчик **всегда** приходит к одному из двух состояний: либо приложение
 готово (`window.__APP_READY__`), либо показана заглушка с кнопкой «Повторить».
 Промежуточного «висит спиннер навсегда» нет по построению.
+
+### 3.12 Уроки отладки (переносимы и в эталон `vk-photo-api`)
+
+Найденные на практике проблемы и их фиксы — их стоит применить и в эталоне:
+
+1. **Не гасить `body.cancel()` вслепую.** При таймауте чтения тела `res.text()`
+   уже мог заблокировать поток; `res.body.cancel()` тогда возвращает rejected
+   промис → в консоли `unhandledrejection «Cannot cancel a locked stream»`.
+   Гаси результат: `var p = r.body.cancel(); if (p && p.catch) p.catch(function () {});`
+2. **Один `AbortController` на заголовки и тело.** Вместо «отменить уже
+   заблокированный поток» по таймауту прерываем сам `fetch(signal)` — это
+   надёжнее и не даёт висящих промисов. Дедлайны: отдельно на заголовки, затем
+   на тело; ошибку показываем как «таймаут ожидания заголовков/чтения тела».
+3. **Не хардкодить фон на `html`.** `html, body { background: … }` перекрывает
+   градиент `body` и ломает светлую тему (остаётся тёмная «половина»/фон при
+   прокрутке). Фон — только на `body` (или через CSS-переменную темы).
+4. **Разные режимы кэша.** Для same-origin API — `cache: "no-store"`; для
+   immutable CDN-зеркал — `cache: "force-cache"`. Хэш в имени делает это
+   безопасным.
+5. **Зеркала лежат в git, и это нормально.** Без коммита хэшированных ассетов
+   jsDelivr отдаёт 404, и весь смысл зеркал пропадает. Пуш обязателен.
+6. **Всегда проверять jsDelivr руками** (`curl … @<branch>/assets/<file>` → 200)
+   после пуша — иначе деградация до Range остаётся незамеченной.
 
 ---
 
@@ -819,7 +845,7 @@ function write(level, message) {
 ### 4.4 Публичный API
 
 ```js
-window.__VK_LOADER__ = {
+window.__LOGUS_LOADER__ = {
   info, ok, warn, error, net,          // записать строку
   show, hide, begin, end,              // оверлей/готовность
   clear, restart, report,              // очистить / перезапустить / выслать diag
@@ -832,7 +858,7 @@ window.__VK_LOADER__ = {
 
 ```ts
 // web/src/api/client.ts
-function loader(): ShellLoader | undefined { return window.__VK_LOADER__; }
+function loader(): ShellLoader | undefined { return window.__LOGUS_LOADER__; }
 
 loader()?.net(`→ ${method} ${action}`);
 loader()?.ok(`← ${action} ${response.status} ${ms}мс`);
@@ -850,8 +876,8 @@ interface ShellLoader {
 }
 interface Window {
   __APP_READY__?: boolean;
-  __VK_APP_MOUNTED__?: boolean;
-  __VK_LOADER__?: ShellLoader;
+  __LOGUS_APP_MOUNTED__?: boolean;
+  __LOGUS_LOADER__?: ShellLoader;
 }
 ```
 
@@ -863,7 +889,7 @@ window.addEventListener("unhandledrejection", onRejection);
 ```
 
 Плюс **ранний буфер**: крошечный инлайн-скрипт в `<head>` (до загрузчика)
-складывает до 50 ошибок в `window.__VK_SHELL_EARLY_ERRORS__`, которые загрузчик
+складывает до 50 ошибок в `window.__LOGUS_SHELL_EARLY_ERRORS__`, которые загрузчик
 «вычитывает» при старте. Так не теряются ошибки, случившиеся до инициализации.
 
 ### 4.6 Поведение и UX
