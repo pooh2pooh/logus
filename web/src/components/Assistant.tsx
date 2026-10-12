@@ -36,9 +36,31 @@ function Head({ subtitle, onCollapse }: { subtitle: string; onCollapse?: () => v
 function Chat() {
   const t = useTraining();
   return (
-    <div className="assistant__chat" aria-live="polite">
+    <div className="assistant__chat" aria-live="polite" ref={(el) => {
+      if (el) {
+        const last = el.querySelector(".assistant__msg--current") || el.lastElementChild;
+        if (last) el.scrollTop = el.scrollHeight;
+      }
+    }}>
       {t.transcript.map((item) => (
-        <article key={item.id} className={`assistant__msg assistant__msg--${item.state}`}>
+        <article
+          key={item.id}
+          className={`assistant__msg assistant__msg--${item.state}${item.state === "current" ? " is-clickable" : ""}`}
+          onClick={item.state === "current" ? () => t.replay() : undefined}
+          role={item.state === "current" ? "button" : undefined}
+          tabIndex={item.state === "current" ? 0 : undefined}
+          onKeyDown={
+            item.state === "current"
+              ? (e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    t.replay();
+                  }
+                }
+              : undefined
+          }
+          title={item.state === "current" ? "Вернуться к текущему шагу" : undefined}
+        >
           <header className="assistant__msg-head">
             {item.state === "done" ? <IconCheck width={13} height={13} /> : <span className="assistant__msg-dot" aria-hidden="true" />}
             <span className="assistant__msg-title">{item.title}</span>
@@ -129,10 +151,10 @@ export function Assistant() {
     ? t.completionLeftMs !== null
       ? `Обучение пройдено · ${fmtLeft(t.completionLeftMs)}`
       : "Обучение пройдено"
-    : t.preparing
-      ? t.statusLine || "Готовлю шаг…"
-      : t.waiting && t.action
-        ? t.action
+    : t.waiting && t.action
+      ? t.action
+      : t.preparing
+        ? t.statusLine || "Готовлю шаг…"
         : `Обучение · шаг ${t.stepNumber} из ${t.totalSteps}`;
 
   if (t.active && !t.finished) {

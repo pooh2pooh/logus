@@ -18,14 +18,14 @@ window.__LOGUS_SHELL_MIRRORS__ = {
 
   /* Зеркала JS-бандла (полные URL или относительные пути). */
   js: [
-  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-xp8VOcfg.js",
-  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-xp8VOcfg.js"
+  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-Dzkl-tzB.js",
+  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-Dzkl-tzB.js"
 ],
 
   /* Зеркала CSS-бандла. */
   css: [
-  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-Mp81I72I.css",
-  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-Mp81I72I.css"
+  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-CleESPP2.css",
+  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-CleESPP2.css"
 ],
 
   /* Прокси: если прямой доступ к CDN блокируется, те же зеркала

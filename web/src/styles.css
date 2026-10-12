@@ -457,6 +457,8 @@ a { color: var(--accent); }
 .assistant__msg { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface-2); }
 .assistant__msg--done { opacity: .72; }
 .assistant__msg--current { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent-ring); }
+.assistant__msg.is-clickable { cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
+.assistant__msg.is-clickable:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 0, 0, .15), 0 0 0 1px var(--accent-ring); }
 .assistant__msg-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: var(--muted); }
 .assistant__msg--done .assistant__msg-head { color: var(--ok); }
 .assistant__msg--current .assistant__msg-head { color: var(--accent); }

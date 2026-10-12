@@ -38,7 +38,7 @@ export const STEPS: Step[] = [
       `Начинаем с главного. Все ${ctx.summary.total} заказов собираются с нескольких электронных площадок в один список. Сейчас покажу панель площадок.`,
     do: () => "Посмотрите, сколько заказов пришло с каждой площадки, и закройте окно.",
     target: '[data-tour="platforms-dialog"]',
-    prepare: [{ type: "openPlatforms" }],
+    prepare: [{ type: "openPlatforms" }, { type: "closeDialogs" }],
     done: (ctx) => Boolean(ctx.flags.platformsOpened),
   },
   {
@@ -47,7 +47,7 @@ export const STEPS: Step[] = [
     say: () => "Чтобы данные были актуальными, площадки синхронизируются. Запускаю синхронизацию — так вы всегда видите свежие статусы.",
     do: () => "Дождитесь окончания обновления.",
     target: '[data-tour="sync"]',
-    prepare: [{ type: "sync" }],
+    prepare: [{ type: "sync" }, { type: "closeDialogs" }],
     done: (ctx) => Boolean(ctx.flags.synced),
   },
   {
@@ -97,7 +97,7 @@ export const STEPS: Step[] = [
     say: () => "Важные события собираются в уведомлениях — ничего не потеряется. Закрываю карточку и открываю колокольчик.",
     do: () => "Нажмите «Прочитано» на любом уведомлении.",
     target: '[data-tour="notifications-dialog"]',
-    prepare: [{ type: "closeDialogs" }, { type: "openNotifications" }],
+    prepare: [{ type: "closeDialogs" }, { type: "openNotifications" }, { type: "closeDialogs" }],
     done: (ctx) => Boolean(ctx.flags.notificationsAcked),
   },
 ];

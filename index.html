@@ -66,12 +66,12 @@
       }
       [hidden] { display: none !important; }
     </style>
-    <link id="shell-css" rel="stylesheet" href="./assets/app-Mp81I72I.css" />
+    <link id="shell-css" rel="stylesheet" href="./assets/app-CleESPP2.css" />
     <script>window.__LOGUS_SHELL_CONFIG__ = {
   version: "0.1.0",
   mode: "origin",
-  js: "./assets/app-xp8VOcfg.js",
-  css: "./assets/app-Mp81I72I.css",
+  js: "./assets/app-Dzkl-tzB.js",
+  css: "./assets/app-CleESPP2.css",
   asset: "./api.php?action=asset",
   diag: "./api.php?action=diag",
   timeoutMs: 8000,
@@ -327,10 +327,12 @@
       // оверлеем во время переходов (screen loader), и ему нужна возможность
       // снова показать лоадер, например при разлогине.
       setHidden($("shell-overlay"), false);
+      try { if (loaderAnim) loaderAnim.start(); } catch (e) {}
       bootBusy(true);
       if (label) write("info", label);
     },
     hide: function () {
+      try { if (loaderAnim) loaderAnim.stop(); } catch (e) {}
       setHidden($("shell-overlay"), true);
       bootBusy(false);
     },
@@ -372,6 +374,61 @@
     report: function () { sendDiag("manual"); },
     isReady: function () { return ready; },
   };
+  var loaderAnim = (function(){
+    var bar = null, label = null, road = null, car = null;
+    var labels = ["Склад","Транспорт","Документы","Прогноз ETA"];
+    var idx = -1;
+    var timer = null;
+    var pct = 0;
+    function init(){
+      bar = $("shell-loader-bar-fill");
+      label = $("shell-loader-label");
+      road = $("shell-loader-road-progress");
+      car = $("shell-loader-car");
+      var path = road ? road.getAttribute("d") : null;
+      if(road){ try{ var len = road.getTotalLength ? road.getTotalLength() : 520; road.style.strokeDasharray = String(len); road.style.strokeDashoffset = String(len); }catch(e){} }
+    }
+    function setPct(v){
+      pct = Math.max(0, Math.min(98, v));
+      if(bar) bar.style.width = pct + "%";
+      if(road){
+        try{
+          var len = road.getTotalLength ? road.getTotalLength() : 520;
+          var off = len * (1 - pct/100);
+          road.style.strokeDashoffset = String(off);
+          if(car && road.getPointAtLength){
+            var pt = road.getPointAtLength(len * (pct/100));
+            car.style.transform = "translate(" + (pt.x-12) + "px," + (pt.y-64) + "px)";
+          }
+        }catch(e){}
+      }
+    }
+    function nextLabel(){
+      if(!label) return;
+      var next;
+      do{ next = Math.floor(Math.random()*labels.length); }while(next === idx && labels.length>1);
+      idx = next;
+      label.textContent = labels[idx];
+      label.classList.remove("is-pulse");
+      void label.offsetWidth;
+      label.classList.add("is-pulse");
+    }
+    function start(){
+      init();
+      setPct(0);
+      nextLabel();
+      if(timer) clearInterval(timer);
+      timer = setInterval(function(){
+        nextLabel();
+        setPct(pct + 4 + Math.random()*6);
+      }, 900 + Math.random()*700);
+    }
+    function stop(){
+      if(timer){ clearInterval(timer); timer = null; }
+      setPct(100);
+    }
+    return { start:start, stop:stop, setPct:setPct };
+  })();
   try {
     window.__LOGUS_LOADER__ = loader;
   } catch (e) {}

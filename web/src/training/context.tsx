@@ -266,17 +266,18 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     const run = async () => {
       setStatusLine(currentStep.say(ctxRef.current));
-      await sleep(700);
+      await sleep(6000);
       for (const action of currentStep.prepare ?? []) {
         if (cancelled) return;
         setStatusLine(describePrepare(action));
-        await sleep(550);
+        await sleep(6000);
         if (cancelled) return;
         runPrepareRef.current(action);
-        await sleep(650);
+        await sleep(6000);
       }
       if (cancelled) return;
       setStatusLine(currentStep.do?.(ctxRef.current) ?? currentStep.say(ctxRef.current));
+      await sleep(6000);
       setPreparing(false);
     };
     void run();
@@ -304,7 +305,7 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
         if (isFinished(nextIndex) && prev.completedAt === null) next.completedAt = Date.now();
         return next;
       });
-    }, 1100);
+    }, 6000);
     return () => window.clearTimeout(timer);
   }, [active, finished, state.stepIndex, ctx]);
 

@@ -65,11 +65,11 @@ async function login(cdp) {
     await waitFor(cdp, "document.querySelectorAll('.order-card').length > 0", 12000);
     const overflow = await cdp.evaluate("document.documentElement.scrollWidth - window.innerWidth");
     check(`нет горизонтального переполнения (Δ=${overflow}px)`, overflow <= 1);
-    const topbar = await cdp.evaluate("(() => { const r = document.querySelector('.topbar').getBoundingClientRect(); return r.width > 0 && r.left >= 0 && r.right <= window.innerWidth + 1; })()");
+    const topbar = await cdp.evaluate("(() => { const el = document.querySelector('.topbar'); if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.left >= 0 && r.right <= window.innerWidth + 1; })()");
     check("шапка вписывается в вьюпорт 390px", topbar);
     await cdp.evaluate("document.querySelector('.order-card').click()");
     check("карточка заказа открывает диалог на мобильном", await waitFor(cdp, "!!document.querySelector('.dialog')", 5000));
-    const dialogFits = await cdp.evaluate("(() => { const r = document.querySelector('.dialog').getBoundingClientRect(); return r.left >= -1 && r.right <= window.innerWidth + 1; })()");
+    const dialogFits = await cdp.evaluate("(() => { const el = document.querySelector('.dialog'); if (!el) return false; const r = el.getBoundingClientRect(); return r.left >= -1 && r.right <= window.innerWidth + 1; })()");
     check("диалог вписывается в ширину экрана", dialogFits);
   }
 
