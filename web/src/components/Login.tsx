@@ -28,7 +28,7 @@ export function Login() {
     <div className="login">
       <form className="login__card" onSubmit={onSubmit}>
         <div className="login__logo">
-          <IconTruck width={28} height={28} />
+          <IconTruck width={40} height={40} />
         </div>
         <h1>Кабинет клиента</h1>
         <p className="sub">Все заказы с электронных площадок — в одном месте.</p>

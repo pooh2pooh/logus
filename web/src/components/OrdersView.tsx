@@ -61,7 +61,7 @@ export function OrdersView({ onOpenOrder }: { onOpenOrder: (id: string) => void 
             style={{ paddingLeft: 36 }}
           />
         </div>
-        <div className="field" style={{ flex: "0 1 210px" }}>
+        <div className="field field--status">
           <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Фильтр по статусу">
             <option value="">Все статусы</option>
             {STATUS_ORDER.map((s: OrderStatus) => (

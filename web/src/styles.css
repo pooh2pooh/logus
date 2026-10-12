@@ -172,6 +172,7 @@ a { color: var(--accent); }
 /* ---------------------------------------------------------------- controls */
 .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
 .field { position: relative; flex: 1 1 220px; min-width: 180px; }
+.field--status { flex: 0 1 210px; }
 .field input, .field select {
   width: 100%; padding: 10px 12px; border-radius: 10px;
   border: 1px solid var(--border); background: var(--surface); color: var(--text);
@@ -258,12 +259,12 @@ a { color: var(--accent); }
 }
 .dialog__head h2 { font-size: 17px; margin: 0; }
 .dialog__body { padding: 16px; display: flex; flex-direction: column; gap: 18px; }
-.dialog__foot { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px; border-top: 1px solid var(--border); background: var(--menu-veil); }
+.dialog__foot { position: sticky; bottom: 0; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px; border-top: 1px solid var(--border); background: var(--menu-veil); backdrop-filter: blur(8px); }
 
 .kv { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
 .kv__row { display: flex; flex-direction: column; gap: 2px; }
 .kv__row dt { font-size: 11.5px; color: var(--muted); }
-.kv__row dd { margin: 0; font-size: 14px; }
+.kv__row dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
 
 /* ---------------------------------------------------------------- timeline */
 .timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
@@ -283,9 +284,22 @@ a { color: var(--accent); }
 
 .docs { display: flex; flex-direction: column; gap: 8px; }
 .doc { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); font-size: 13.5px; }
-.doc__status { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+.doc > svg { flex: none; }
+.doc > div { min-width: 0; }
+.doc__title { min-width: 0; overflow-wrap: anywhere; }
+.doc__status { margin-left: auto; flex: none; font-size: 11.5px; color: var(--muted); }
 .doc__status--ok { color: var(--ok); }
 .doc__status--wait { color: var(--warn); }
+
+/* Строка «тип документа + кнопка загрузки»: на узких экранах переносится,
+   чтобы не выталкивать содержимое диалога по горизонтали. */
+.doc-upload { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.doc-upload select {
+  flex: 1 1 170px; min-width: 0;
+  padding: 8px 10px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
+.doc-upload .btn { flex: 1 1 auto; }
 
 /* ---------------------------------------------------------------- notifications */
 .notif { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -316,7 +330,7 @@ a { color: var(--accent); }
 /* ---------------------------------------------------------------- login */
 .login { min-height: 100%; display: grid; place-items: center; padding: 24px; }
 .login__card { width: min(400px, 100%); border: 1px solid var(--edge); border-radius: 18px; padding: 26px; background: var(--panel-face); box-shadow: var(--shadow-inset), var(--shadow-md); }
-.login__logo { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--btn-accent); color: var(--on-accent); margin: 0 auto 16px; }
+.login__logo { width: 72px; height: 72px; border-radius: 20px; display: grid; place-items: center; background: var(--btn-accent); color: var(--on-accent); margin: 0 auto 18px; box-shadow: var(--shadow-md), var(--shadow-inset); }
 .login h1 { font-size: 21px; margin: 0 0 4px; text-align: center; }
 .login p.sub { color: var(--muted); font-size: 13.5px; margin: 0 0 20px; text-align: center; }
 .login .field { margin-bottom: 12px; }
@@ -335,9 +349,21 @@ a { color: var(--accent); }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 
 @media (max-width: 640px) {
-  .summary { grid-template-columns: repeat(2, 1fr); }
+  /* Те же боковые отступы, что у шапки (16px) — контент выровнен по сетке. */
+  .container { padding: 16px; }
   .topbar__title span { display: none; }
-  .container { padding: 12px; }
+  .summary { grid-template-columns: repeat(2, 1fr); }
+
+  /* Ключ-значение в одну колонку: длинные адреса не зажимаются в половину. */
+  .kv { grid-template-columns: 1fr; }
+
+  /* Поиск и фильтр статуса — во всю ширину, кнопки делят строку без пустот. */
+  .controls .field { flex: 1 1 100%; }
+  .controls .btn:not(.btn-icon) { flex: 1 1 auto; }
+
+  /* Тип документа и «Загрузить» — каждый во всю ширину строки. */
+  .doc-upload select,
+  .doc-upload .btn { flex: 1 1 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -103,12 +103,11 @@ export function OrderDialog({ id, onClose }: { id: string; onClose: () => void }
               </button>
             )}
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div className="doc-upload">
             <select
               value={docType}
               onChange={(e) => setDocType(e.target.value)}
               aria-label="Тип документа"
-              style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface)" }}
             >
               {DOC_TYPES.map((d) => (
                 <option key={d} value={d}>
@@ -221,7 +220,7 @@ export function OrderDialog({ id, onClose }: { id: string; onClose: () => void }
           {order.docs.map((doc) => (
             <div className="doc" key={doc.id}>
               <IconDoc width={18} height={18} />
-              <span>{doc.title}</span>
+              <span className="doc__title">{doc.title}</span>
               <span className={`doc__status doc__status--${doc.status}`}>{doc.status === "ok" ? "Готов" : "Ожидается"}</span>
             </div>
           ))}
