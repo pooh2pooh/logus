@@ -69,7 +69,7 @@
     <link id="shell-css" rel="stylesheet" href="./assets/app-CleESPP2.css" />
     <script>window.__LOGUS_SHELL_CONFIG__ = {
   version: "0.1.0",
-  mode: "origin",
+  mode: "mirror",
   js: "./assets/app-Dzkl-tzB.js",
   css: "./assets/app-CleESPP2.css",
   asset: "./api.php?action=asset",
@@ -92,7 +92,26 @@
   </head>
   <body class="shell-busy">
     <div id="root"></div>
-    <div id="shell-overlay" aria-hidden="true"><div class="shell-spin"></div></div>
+    <div id="shell-overlay" aria-hidden="true">
+      <div class="shell-loader" role="status" aria-live="polite">
+        <svg class="shell-loader__map" viewBox="0 0 240 100" aria-hidden="true">
+          <path class="shell-loader__road" d="M 12 64 H 36 V 40 H 76 V 64 H 116 V 40 H 156 V 64 H 196 V 40 H 228" />
+          <path class="shell-loader__road--progress" id="shell-loader-road-progress" d="M 12 64 H 36 V 40 H 76 V 64 H 116 V 40 H 156 V 64 H 196 V 40 H 228" />
+          <circle class="shell-loader__car" id="shell-loader-car" cx="12" cy="64" r="4" />
+          <g class="shell-loader__checks" fill="rgba(154,163,178,.6)">
+            <circle cx="36" cy="40" r="2.5" />
+            <circle cx="76" cy="64" r="2.5" />
+            <circle cx="116" cy="40" r="2.5" />
+            <circle cx="156" cy="64" r="2.5" />
+            <circle cx="196" cy="40" r="2.5" />
+          </g>
+        </svg>
+        <div class="shell-loader__label" id="shell-loader-label">Склад</div>
+        <div class="shell-loader__bar">
+          <div class="shell-loader__bar-fill" id="shell-loader-bar-fill"></div>
+        </div>
+      </div>
+    </div>
     <div id="shell-log" role="log" aria-live="polite"></div>
     <button id="shell-log-toggle" class="is-hidden" type="button" aria-pressed="false">лог</button>
     <div id="shell-fallback" class="is-hidden">
