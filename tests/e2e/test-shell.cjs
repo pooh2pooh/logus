@@ -551,12 +551,13 @@ const encode = (s) => encodeURIComponent(s);
       mirrors: { js: [mirror], css: [] },
     });
     assert.equal(e.yielded.scripts.length, 1, "основной <script src> подключён");
+    assert.equal(e.yielded.scripts[0].src, mirror, "основным источником должно быть CDN-зеркало, а не same-origin PHP-ассет");
     assert.ok(e.yielded.scripts[0].parentNode, "основной скрипт в документе");
     e.dispatch("error", primaryJs);
     await wait(30);
     assert.equal(e.yielded.scripts[0].parentNode, null, "подвисший основной скрипт должен быть снят с документа");
     assert.equal(e.yielded.scripts[1].src, mirror, "вместо него подключается зеркало");
-    console.log("25. подвисший основной <script> снимается при резерве: OK");
+    console.log("25. основной берётся с зеркала, подвисший <script> снимается: OK");
   }
 
   console.log("\nВсе тесты загрузчика прошли.");
