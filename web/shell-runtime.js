@@ -274,6 +274,7 @@
     ready = true;
     loader.ready = true;
     clearTimers();
+    clearRemoteScripts();
     doomed = false;
     bootBusy(false);
     setHidden($("shell-overlay"), true);
@@ -303,6 +304,7 @@
     if (window.__APP_READY__) { markReady(); return; }
     if (doomed) return;
     doomed = true;
+    clearRemoteScripts();
     bootBusy(false);
     setHidden($("shell-overlay"), true);
     write("error", "Резервные источники исчерпаны: " + (code || ""));
@@ -361,7 +363,7 @@
   function cacheText(kind, url) {
     try {
       if (typeof fetch !== "function") return;
-      fetch(url, { credentials: "omit" }).then(function (r) {
+      fetchWithTimeout(url, { credentials: "omit" }, MIRROR_TIMEOUT).then(function (r) {
         if (!r.ok) return null;
         return r.text();
       }).then(function (t) {
@@ -451,13 +453,44 @@
     document.head.appendChild(st);
   }
 
+  // Внешние <script src>, вставленные загрузчиком. Держим ссылки, чтобы уметь
+  // снять «подвисший» тег: незавершённый <script> не даёт странице выпустить
+  // событие load, и Safari/мобильные браузеры показывают бесконечную загрузку
+  // даже после того, как интерфейс уже поднялся из зеркала.
+  var remoteScripts = [];
+
   function injectJsUrl(url) {
     var s = el("script");
     if (!s) return null;
+    s.async = true;
+    s.__loaded = false;
+    s.onload = function () { s.__loaded = true; };
+    s.onerror = function () { s.__loaded = true; };
     s.src = url;
+    remoteScripts.push(s);
     mountPoint().appendChild(s);
     write("net", "Подключаю JS: " + url);
     return s;
+  }
+
+  // Снимаем вставленные, но ещё не завершившиеся внешние скрипты (кроме keep):
+  // удаление тега прерывает незавершённый запрос и разблокирует событие load.
+  // Исполненные скрипты не трогаем — их удаление бессмысленно и может
+  // спровоцировать лишний запрос.
+  function clearRemoteScripts(keep) {
+    var rest = [];
+    for (var i = 0; i < remoteScripts.length; i++) {
+      var s = remoteScripts[i];
+      if (!s) continue;
+      if (s === keep) { rest.push(s); continue; }
+      if (s.__loaded) continue;
+      try {
+        s.onload = null;
+        s.onerror = null;
+        if (s.parentNode) s.parentNode.removeChild(s);
+      } catch (e) {}
+    }
+    remoteScripts = keep ? [keep] : [];
   }
 
   function injectCssUrl(url, onError) {
@@ -969,11 +1002,16 @@
 
     write("warn", "Резервный запуск JS (вариантов: " + steps.length + ")");
 
+    // Основной <script src> мог «подвиснуть» — снимаем его, чтобы не держал load.
+    clearRemoteScripts();
+
     var index = 0;
     function attempt() {
       if (window.__APP_READY__) { markReady(); return; }
       if (index >= steps.length) { runLocalFetchThenStub(); return; }
       var step = steps[index++];
+      // Перед следующим источником снимаем предыдущий незавершившийся тег.
+      clearRemoteScripts();
       if (step.cache) {
         write("warn", "Резервный JS из localStorage");
         injectJsFromText(step.cache, "localStorage");

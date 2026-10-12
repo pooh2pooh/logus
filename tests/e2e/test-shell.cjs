@@ -30,6 +30,7 @@ function makeEl(tag) {
     type: "", src: "", href: "", rel: "", textContent: "", className: "", crossOrigin: "",
     onload: null, onerror: null, hidden: false,
     scrollTop: 0, scrollHeight: 0,
+    parentNode: null,
     childNodes: children,
     classList: {
       add: (c) => classes.add(c),
@@ -41,7 +42,7 @@ function makeEl(tag) {
       },
     },
     appendChild(child) { children.push(child); return child; },
-    removeChild(child) { const i = children.indexOf(child); if (i >= 0) children.splice(i, 1); return child; },
+    removeChild(child) { const i = children.indexOf(child); if (i >= 0) children.splice(i, 1); child.parentNode = null; return child; },
     get firstChild() { return children[0] || null; },
     setAttribute(k, v) { this._attrs = this._attrs || {}; this._attrs[k] = v; },
     getAttribute(k) { return (this._attrs && this._attrs[k]) || null; },
@@ -70,6 +71,7 @@ function makeEnv({ localStorage: ls = {}, mirrors = {}, fetchText = null, hangBo
   els["shell-log-toggle"].classList.add("is-hidden");
 
   function capture(node) {
+    node.parentNode = this;
     if (node.tagName === "STYLE") yielded.styles.push(node);
     else if (node.tagName === "SCRIPT") yielded.scripts.push(node);
     else if (node.tagName === "LINK") yielded.links.push(node);
@@ -537,6 +539,24 @@ const encode = (s) => encodeURIComponent(s);
     assert.equal(e.yielded.scripts[1].src, mirror, "после основного должен идти CDN-зеркало");
     assert.notEqual(e.yielded.scripts[1].src, JS, "статика не должна опережать зеркало");
     console.log("24. Резерв: зеркало раньше статики: OK");
+  }
+
+  // 25. «Подвисший» основной <script src> снимается при переходе на резерв:
+  //     незавершённый тег держит событие load, и Safari/мобильные показывают
+  //     бесконечную загрузку даже после старта интерфейса из зеркала.
+  {
+    const mirror = "https://cdn.jsdelivr.net/gh/u/r@main/assets/app-X.js";
+    const e = makeEnv({
+      asset: "./api.php?action=asset",
+      mirrors: { js: [mirror], css: [] },
+    });
+    assert.equal(e.yielded.scripts.length, 1, "основной <script src> подключён");
+    assert.ok(e.yielded.scripts[0].parentNode, "основной скрипт в документе");
+    e.dispatch("error", primaryJs);
+    await wait(30);
+    assert.equal(e.yielded.scripts[0].parentNode, null, "подвисший основной скрипт должен быть снят с документа");
+    assert.equal(e.yielded.scripts[1].src, mirror, "вместо него подключается зеркало");
+    console.log("25. подвисший основной <script> снимается при резерве: OK");
   }
 
   console.log("\nВсе тесты загрузчика прошли.");

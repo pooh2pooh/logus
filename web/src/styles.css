@@ -317,8 +317,8 @@ a { color: var(--accent); }
 .login { min-height: 100%; display: grid; place-items: center; padding: 24px; }
 .login__card { width: min(400px, 100%); border: 1px solid var(--edge); border-radius: 18px; padding: 26px; background: var(--panel-face); box-shadow: var(--shadow-inset), var(--shadow-md); }
 .login__logo { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--btn-accent); color: var(--on-accent); margin: 0 auto 16px; }
-.login h1 { font-size: 21px; margin: 0 0 4px; }
-.login p.sub { color: var(--muted); font-size: 13.5px; margin: 0 0 20px; }
+.login h1 { font-size: 21px; margin: 0 0 4px; text-align: center; }
+.login p.sub { color: var(--muted); font-size: 13.5px; margin: 0 0 20px; text-align: center; }
 .login .field { margin-bottom: 12px; }
 .login__hint { margin-top: 14px; font-size: 12px; color: var(--muted); text-align: center; }
 .login__error { color: var(--danger-text); font-size: 13px; margin: 0 0 12px; }

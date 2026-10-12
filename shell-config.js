@@ -17,8 +17,8 @@ window.__LOGUS_SHELL_MIRRORS__ = {
 
   /* Зеркала CSS-бандла. */
   css: [
-  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-CNbne3FU.css",
-  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-CNbne3FU.css"
+  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-Bl6NNQJw.css",
+  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-Bl6NNQJw.css"
 ],
 
   /* Прокси: если прямой доступ к CDN блокируется, те же зеркала
