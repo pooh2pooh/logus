@@ -748,11 +748,40 @@ function action_order(): void
     json_out(['order' => $order]);
 }
 
+/*
+ * Учебный режим. Отдаёт КАНОНИЧЕСКИЙ набор заказов (без патчей state.json),
+ * чтобы обучение было детерминированным и не зависело от действий других
+ * пользователей. Ничего не изменяет: ни seed, ни state — только чтение.
+ * Обычные действия в режиме обучения выполняются на клиенте (localStorage).
+ */
+function action_training(): void
+{
+    require_auth();
+    $orders = collect_all_orders();
+
+    $id = trim((string) ($_GET['id'] ?? ''));
+    if ($id !== '') {
+        foreach ($orders as $order) {
+            if ($order['id'] === $id) {
+                json_out(['order' => $order]);
+            }
+        }
+        fail(404, 'ORDER_NOT_FOUND', 'Заказ не найден');
+    }
+
+    json_out([
+        'items'   => $orders,
+        'total'   => count($orders),
+        'summary' => order_summary($orders),
+    ]);
+}
+
 function action_order_action(): void
 {
     require_auth();
     assert_same_origin();
     require_method('POST');
+
 
     $body = request_body();
     $id = is_string($body['id'] ?? null) ? trim($body['id']) : '';
@@ -1179,6 +1208,8 @@ try {
             action_orders();
         case 'order':
             action_order();
+        case 'training':
+            action_training();
         case 'order_action':
             action_order_action();
         case 'notifications':

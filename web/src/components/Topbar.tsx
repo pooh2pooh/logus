@@ -25,7 +25,7 @@ export function Topbar({ unread, theme, onToggleTheme, onOpenNotifications, onOp
       </div>
 
       <div className="topbar__actions">
-        <button className="btn btn-icon" type="button" onClick={onOpenPlatforms} aria-label="Площадки" title="Площадки">
+        <button className="btn btn-icon" type="button" onClick={onOpenPlatforms} aria-label="Площадки" title="Площадки" data-tour="platforms">
           <IconLayers width={18} height={18} />
         </button>
         <button
@@ -34,6 +34,7 @@ export function Topbar({ unread, theme, onToggleTheme, onOpenNotifications, onOp
           onClick={onOpenNotifications}
           aria-label={`Уведомления${unread > 0 ? `, новых: ${unread}` : ""}`}
           title="Уведомления"
+          data-tour="notifications"
           style={{ position: "relative" }}
         >
           <IconBell width={18} height={18} />

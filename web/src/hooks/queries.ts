@@ -21,6 +21,7 @@ import {
 } from "../api/client.js";
 import type { OrderActionInput } from "../api/types.js";
 import { PAGE_SIZE } from "../api/config.js";
+import { useTraining } from "../training/context.js";
 
 export function useSession() {
   return useQuery({
@@ -57,7 +58,8 @@ export function useLogout() {
 }
 
 export function useOrders(filter: Pick<OrdersQuery, "platform" | "status" | "q">) {
-  return useInfiniteQuery({
+  const training = useTraining();
+  const remote = useInfiniteQuery({
     queryKey: ["orders", filter],
     initialPageParam: 1,
     queryFn: ({ pageParam }) => fetchOrders({ ...filter, page: pageParam, limit: PAGE_SIZE }),
@@ -68,44 +70,102 @@ export function useOrders(filter: Pick<OrdersQuery, "platform" | "status" | "q">
     staleTime: 30_000,
     retry: 1,
     refetchOnWindowFocus: false,
+    enabled: !training.active,
   });
+
+  // В режиме обучения данные берём из локальной модели — мгновенно, без сети.
+  if (training.active) {
+    const page = training.getOrders(filter);
+    return {
+      data: training.loaded ? { pages: [page], pageParams: [1] } : undefined,
+      isPending: !training.loaded,
+      isError: false,
+      error: null,
+      isFetching: false,
+      refetch: () => {},
+      hasNextPage: false,
+      fetchNextPage: () => {},
+      isFetchingNextPage: false,
+    } as unknown as typeof remote;
+  }
+  return remote;
 }
 
 export function useOrder(id: string | null) {
-  return useQuery({
+  const training = useTraining();
+  const remote = useQuery({
     queryKey: ["order", id],
     queryFn: () => fetchOrder(id as string),
-    enabled: Boolean(id),
+    enabled: Boolean(id) && !training.active,
     staleTime: 15_000,
     retry: 1,
     refetchOnWindowFocus: false,
   });
+
+  if (training.active) {
+    const order = id ? training.getOrder(id) : undefined;
+    return {
+      data: order ? { order } : undefined,
+      isPending: !training.loaded,
+      isError: training.loaded && !order,
+      error: null,
+      refetch: () => {},
+    } as unknown as typeof remote;
+  }
+  return remote;
 }
 
 export function useNotifications(enabled = true) {
-  return useQuery({
+  const training = useTraining();
+  const remote = useQuery({
     queryKey: ["notifications"],
     queryFn: fetchNotifications,
-    enabled,
+    enabled: enabled && !training.active,
     staleTime: 15_000,
     refetchOnWindowFocus: false,
   });
+
+  if (training.active) {
+    return {
+      data: { items: training.notifications, unread: training.unread },
+      isPending: !training.loaded,
+      isError: false,
+      error: null,
+      refetch: () => {},
+    } as unknown as typeof remote;
+  }
+  return remote;
 }
 
 export function usePlatforms() {
-  return useQuery({
+  const training = useTraining();
+  const remote = useQuery({
     queryKey: ["platforms"],
     queryFn: fetchPlatforms,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
+    enabled: !training.active,
   });
+
+  if (training.active) {
+    return {
+      data: { items: training.platforms },
+      isPending: !training.loaded,
+      isError: false,
+      error: null,
+      refetch: () => {},
+    } as unknown as typeof remote;
+  }
+  return remote;
 }
 
 export function useOrderAction() {
   const qc = useQueryClient();
+  const training = useTraining();
   return useMutation({
-    mutationFn: (input: OrderActionInput) => runOrderAction(input),
+    mutationFn: (input: OrderActionInput) => (training.active ? training.performAction(input) : runOrderAction(input)),
     onSuccess: (_data, input) => {
+      if (training.active) return;
       void qc.invalidateQueries({ queryKey: ["orders"] });
       void qc.invalidateQueries({ queryKey: ["order", input.id] });
       void qc.invalidateQueries({ queryKey: ["notifications"] });
@@ -115,20 +175,29 @@ export function useOrderAction() {
 
 export function useAckNotification() {
   const qc = useQueryClient();
+  const training = useTraining();
   return useMutation({
-    mutationFn: (id: string) => acknowledgeNotification(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+    mutationFn: (id: string) =>
+      training.active ? training.ackNotification(id).then(() => ({ ok: true })) : acknowledgeNotification(id),
+    onSuccess: () => {
+      if (!training.active) void qc.invalidateQueries({ queryKey: ["notifications"] });
+    },
   });
 }
 
 export function useSync() {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: runSync,
+  const training = useTraining();
+  const base = useMutation({
+    mutationFn: () => (training.active ? training.performSync() : runSync()),
     onSuccess: () => {
+      if (training.active) return;
       void qc.invalidateQueries({ queryKey: ["orders"] });
       void qc.invalidateQueries({ queryKey: ["platforms"] });
       void qc.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
+  // В режиме обучения синхронизацию может запускать и Помощник — показываем
+  // её ход даже если кнопку нажал не пользователь.
+  return { ...base, isPending: base.isPending || training.syncPending };
 }

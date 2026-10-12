@@ -1,15 +1,19 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { QueryCache, QueryClient, QueryClientProvider, useIsFetching, useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "./api/client.js";
 import type { ThemeName } from "./api/config.js";
 import { useLogout, useNotifications, useSession } from "./hooks/queries.js";
 import { useTheme } from "./hooks/useTheme.js";
+import { AppUiProvider, useAppUi } from "./hooks/useAppUi.js";
+import { TrainingProvider } from "./training/context.js";
 import { Login } from "./components/Login.js";
 import { Topbar } from "./components/Topbar.js";
 import { OrdersView } from "./components/OrdersView.js";
 import { OrderDialog } from "./components/OrderDialog.js";
 import { NotificationsDialog } from "./components/NotificationsDialog.js";
 import { PlatformsDialog } from "./components/PlatformsDialog.js";
+import { Assistant } from "./components/Assistant.js";
+import { Tour } from "./components/Tour.js";
 import { ErrorState } from "./components/StateViews.js";
 
 export const queryClient = new QueryClient({
@@ -46,7 +50,8 @@ function ProgressBar() {
 function ScreenLoader() {
   const session = useSession();
   const loading = useIsFetching({
-    predicate: (query) => query.state.data === undefined && query.queryKey[0] !== "session",
+    // Учебный набор подгружается фоном и не должен поднимать оверлей кабинета.
+    predicate: (query) => query.state.data === undefined && query.queryKey[0] !== "session" && query.queryKey[0] !== "training",
   });
   const mutating = useIsMutating();
   const busy = session.isPending || session.isFetching || loading > 0 || mutating > 0;
@@ -76,9 +81,7 @@ function Splash({ label }: { label: string }) {
 function Shell({ user, theme, onToggleTheme }: { user: string | null; theme: ThemeName; onToggleTheme: () => void }) {
   const logout = useLogout();
   const notifications = useNotifications(true);
-  const [orderId, setOrderId] = useState<string | null>(null);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showPlatforms, setShowPlatforms] = useState(false);
+  const ui = useAppUi();
 
   const unread = notifications.data?.unread ?? 0;
 
@@ -88,20 +91,23 @@ function Shell({ user, theme, onToggleTheme }: { user: string | null; theme: The
         unread={unread}
         theme={theme}
         onToggleTheme={onToggleTheme}
-        onOpenNotifications={() => setShowNotifications(true)}
-        onOpenPlatforms={() => setShowPlatforms(true)}
+        onOpenNotifications={() => ui.setShowNotifications(true)}
+        onOpenPlatforms={() => ui.setShowPlatforms(true)}
         onLogout={() => logout.mutate()}
         user={user}
       />
       <main className="container">
-        <OrdersView onOpenOrder={setOrderId} />
+        <OrdersView onOpenOrder={(id) => ui.setOrderId(id)} />
       </main>
 
-      {orderId ? <OrderDialog id={orderId} onClose={() => setOrderId(null)} /> : null}
-      {showNotifications ? (
-        <NotificationsDialog onClose={() => setShowNotifications(false)} onOpenOrder={setOrderId} />
+      {ui.orderId ? <OrderDialog id={ui.orderId} onClose={() => ui.setOrderId(null)} /> : null}
+      {ui.showNotifications ? (
+        <NotificationsDialog onClose={() => ui.setShowNotifications(false)} onOpenOrder={(id) => ui.setOrderId(id)} />
       ) : null}
-      {showPlatforms ? <PlatformsDialog onClose={() => setShowPlatforms(false)} /> : null}
+      {ui.showPlatforms ? <PlatformsDialog onClose={() => ui.setShowPlatforms(false)} /> : null}
+
+      <Assistant />
+      <Tour />
     </div>
   );
 }
@@ -160,7 +166,13 @@ function AppContent() {
     return <Login />;
   }
 
-  return <Shell user={session.data.user} theme={theme} onToggleTheme={toggle} />;
+  return (
+    <AppUiProvider>
+      <TrainingProvider>
+        <Shell user={session.data.user} theme={theme} onToggleTheme={toggle} />
+      </TrainingProvider>
+    </AppUiProvider>
+  );
 }
 
 export function App() {

@@ -87,6 +87,12 @@ export interface OrdersPage {
   summary: OrderSummary;
 }
 
+export interface TrainingResult {
+  items: Order[];
+  total: number;
+  summary: OrderSummary;
+}
+
 export interface Platform {
   code: PlatformCode | string;
   title: string;

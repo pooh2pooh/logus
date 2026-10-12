@@ -75,7 +75,7 @@ export function OrderDialog({ id, onClose }: { id: string; onClose: () => void }
           />
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {(status === "created" || status === "carrier_assigned") && (
-              <button className="btn btn--accent" type="button" disabled={actionMutation.isPending} onClick={() => run("confirm")}>
+              <button className="btn btn--accent" type="button" disabled={actionMutation.isPending} onClick={() => run("confirm")} data-tour="action-confirm">
                 <IconCheck width={16} height={16} /> Подтвердить
               </button>
             )}
@@ -93,7 +93,7 @@ export function OrderDialog({ id, onClose }: { id: string; onClose: () => void }
               </>
             )}
             {status === "problem" && (
-              <button className="btn btn--accent" type="button" disabled={actionMutation.isPending} onClick={() => run("resolve_problem")}>
+              <button className="btn btn--accent" type="button" disabled={actionMutation.isPending} onClick={() => run("resolve_problem")} data-tour="action-resolve">
                 <IconCheck width={16} height={16} /> Урегулировать
               </button>
             )}
@@ -115,7 +115,7 @@ export function OrderDialog({ id, onClose }: { id: string; onClose: () => void }
                 </option>
               ))}
             </select>
-            <button className="btn" type="button" disabled={actionMutation.isPending} onClick={() => run("upload_doc", { docType })}>
+            <button className="btn" type="button" disabled={actionMutation.isPending} onClick={() => run("upload_doc", { docType })} data-tour="action-upload">
               <IconUpload width={16} height={16} /> Загрузить документ
             </button>
           </div>

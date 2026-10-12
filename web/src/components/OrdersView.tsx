@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useOrders, useSync } from "../hooks/queries.js";
+import { useAppUi } from "../hooks/useAppUi.js";
 import { ApiError } from "../api/client.js";
 import type { OrderStatus } from "../api/types.js";
 import { PLATFORM_LABEL, STATUS_LABEL, STATUS_ORDER } from "../format.js";
@@ -16,8 +17,7 @@ const PLATFORM_FILTERS: Array<{ code: string; label: string }> = [
 ];
 
 export function OrdersView({ onOpenOrder }: { onOpenOrder: (id: string) => void }) {
-  const [platform, setPlatform] = useState("");
-  const [status, setStatus] = useState("");
+  const { platform, setPlatform, status, setStatus } = useAppUi();
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
 
@@ -62,7 +62,7 @@ export function OrdersView({ onOpenOrder }: { onOpenOrder: (id: string) => void 
           />
         </div>
         <div className="field field--status">
-          <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Фильтр по статусу">
+          <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Фильтр по статусу" data-tour="status-filter">
             <option value="">Все статусы</option>
             {STATUS_ORDER.map((s: OrderStatus) => (
               <option key={s} value={s}>
@@ -88,6 +88,7 @@ export function OrdersView({ onOpenOrder }: { onOpenOrder: (id: string) => void 
           disabled={sync.isPending}
           aria-busy={sync.isPending}
           title="Синхронизировать с площадками"
+          data-tour="sync"
         >
           <IconSync width={16} height={16} />
           {sync.isPending ? "Синхронизация…" : "Синхронизировать"}

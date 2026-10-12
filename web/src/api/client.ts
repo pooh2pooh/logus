@@ -9,6 +9,7 @@ import type {
   Platform,
   SessionState,
   SyncResult,
+  TrainingResult,
 } from "./types.js";
 
 export class ApiError extends Error {
@@ -154,6 +155,9 @@ export const acknowledgeNotification = (notifyId: string): Promise<{ ok: boolean
   });
 
 export const fetchPlatforms = (): Promise<{ items: Platform[] }> => api<{ items: Platform[] }>("platforms");
+
+/** Канонический (учебный) набор заказов — режим обучения, только чтение. */
+export const fetchTraining = (): Promise<TrainingResult> => api<TrainingResult>("training");
 
 export const runSync = (): Promise<SyncResult> => api<SyncResult>("sync", { method: "POST", timeoutMs: 20000 });
 

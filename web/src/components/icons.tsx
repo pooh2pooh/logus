@@ -215,6 +215,16 @@ export function IconInbox(props: IconProps) {
   );
 }
 
+/** Искры — Помощник и обучение. */
+export function IconSpark(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M11 3.5 12.6 8l4.4 1.6L12.6 11 11 15.5 9.4 11 5 9.6 9.4 8z" />
+      <path d="M18 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" />
+    </svg>
+  );
+}
+
 /** Нет связи (offline). */
 export function IconWifiOff(props: IconProps) {
   return (

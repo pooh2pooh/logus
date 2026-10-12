@@ -12,6 +12,7 @@ export function PlatformsDialog({ onClose }: { onClose: () => void }) {
     <Modal
       title="Электронные площадки"
       onClose={onClose}
+      tour="platforms-dialog"
       footer={
         <button className="btn btn--accent" type="button" onClick={() => sync.mutate()} disabled={sync.isPending} aria-busy={sync.isPending}>
           <IconSync width={16} height={16} />

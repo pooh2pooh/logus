@@ -15,7 +15,7 @@ export function NotificationsDialog({
   const ack = useAckNotification();
 
   return (
-    <Modal title="Уведомления" onClose={onClose}>
+    <Modal title="Уведомления" onClose={onClose} tour="notifications-dialog">
       {isPending ? (
         <p style={{ color: "var(--muted)" }}>Загружаем уведомления…</p>
       ) : isError ? (
@@ -55,6 +55,7 @@ export function NotificationsDialog({
                     style={{ padding: "6px 10px" }}
                     onClick={() => ack.mutate(n.id)}
                     disabled={ack.isPending}
+                    data-tour="notif-ack"
                     aria-label={`Отметить прочитанным: ${n.title}`}
                   >
                     Прочитано
