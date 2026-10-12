@@ -14,18 +14,18 @@ window.__LOGUS_SHELL_MIRRORS__ = {
    *   "origin" — основной источник сам хостинг (сервер в РФ);
    *   "auto"   — "mirror", если зеркала заданы, иначе "origin".
    * На сервере это поле можно менять вручную без пересборки. */
-  mode: "mirror",
+  mode: "origin",
 
   /* Зеркала JS-бандла (полные URL или относительные пути). */
   js: [
-  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-CLx_2syp.js",
-  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-CLx_2syp.js"
+  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-xp8VOcfg.js",
+  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-xp8VOcfg.js"
 ],
 
   /* Зеркала CSS-бандла. */
   css: [
-  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-DhJRngV7.css",
-  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-DhJRngV7.css"
+  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-Mp81I72I.css",
+  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-Mp81I72I.css"
 ],
 
   /* Прокси: если прямой доступ к CDN блокируется, те же зеркала

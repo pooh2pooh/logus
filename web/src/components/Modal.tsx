@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock.js";
 import { IconClose } from "./icons.js";
 
 interface Props {
@@ -18,10 +19,10 @@ export function Modal({ title, onClose, children, footer, tour }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const restore = useRef<HTMLElement | null>(null);
 
+  useBodyScrollLock();
+
   useEffect(() => {
     restore.current = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
 
     const node = ref.current;
     const first = node?.querySelector<HTMLElement>(FOCUSABLE);
@@ -52,7 +53,6 @@ export function Modal({ title, onClose, children, footer, tour }: Props) {
 
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
       restore.current?.focus?.();
     };
   }, [onClose]);

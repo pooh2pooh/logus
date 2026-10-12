@@ -46,7 +46,23 @@ export interface OrdersFilter {
   q?: string;
 }
 
+/** Строка «чата» Помощника: пройденный или текущий шаг. */
+export interface TranscriptItem {
+  id: string;
+  title: string;
+  say: string;
+  action: string;
+  state: "done" | "current";
+}
+
 interface TrainingApi {
+  /** Лента шагов: все пройденные + текущий (как чат). */
+  transcript: TranscriptItem[];
+  /** Помощник сейчас сам выполняет подготовку шага. */
+  preparing: boolean;
+  /** Подготовка закончена — ждём действия пользователя. */
+  waiting: boolean;
+
   /** Канонический набор загружен. */
   loaded: boolean;
   /** Режим обучения включён (данные кабинета — учебные). */
@@ -128,6 +144,7 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
   const [statusLine, setStatusLine] = useState("");
   const [hint, setHint] = useState<string | null>(null);
   const [celebrate, setCelebrate] = useState(false);
+  const [preparing, setPreparing] = useState(false);
   const [syncPending, setSyncPending] = useState(false);
   const [nowTick, setNowTick] = useState(() => Date.now());
   const [replayToken, setReplayToken] = useState(0);
@@ -136,6 +153,10 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
   const ordersRef = useRef<Order[]>([]);
   const preparedRef = useRef<string | null>(null);
   const runPrepareRef = useRef<(action: PrepareAction) => void>(() => {});
+  // Стабильная ссылка на закрытие окон: колбэки выхода не должны
+  // пересоздаваться при каждом изменении вида кабинета.
+  const closeDialogsRef = useRef(ui.closeDialogs);
+  closeDialogsRef.current = ui.closeDialogs;
 
   useEffect(() => {
     stateRef.current = state;
@@ -163,6 +184,27 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     ctxRef.current = ctx;
   }, [ctx]);
+
+  // Лента чата: пройденные шаги + текущий. Будущие не показываем.
+  const transcript = useMemo<TranscriptItem[]>(() => {
+    const items: TranscriptItem[] = [];
+    STEPS.forEach((s, index) => {
+      const isDone = index < state.stepIndex || state.done.includes(s.id);
+      const isCurrent = index === state.stepIndex && !finished;
+      if (!isDone && !isCurrent) return;
+      items.push({
+        id: s.id,
+        title: s.title,
+        say: s.say(ctx),
+        action: s.do?.(ctx) ?? "",
+        state: isCurrent ? "current" : "done",
+      });
+    });
+    return items;
+  }, [ctx, state.stepIndex, state.done, finished]);
+
+  // Ждём действия пользователя: шаг открыт, подготовка завершена, не празднуем.
+  const waiting = active && !finished && !preparing && !celebrate;
 
   const setFlag = useCallback((name: string, value = true) => {
     setState((s) => (s.flags[name] === value ? s : { ...s, flags: { ...s.flags, [name]: value } }));
@@ -220,24 +262,27 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
     if (!currentStep || preparedRef.current === currentStep.id) return;
     preparedRef.current = currentStep.id;
     setHint(null);
+    setPreparing(true);
     let cancelled = false;
     const run = async () => {
       setStatusLine(currentStep.say(ctxRef.current));
-      await sleep(650);
+      await sleep(700);
       for (const action of currentStep.prepare ?? []) {
         if (cancelled) return;
         setStatusLine(describePrepare(action));
-        await sleep(480);
+        await sleep(550);
         if (cancelled) return;
         runPrepareRef.current(action);
-        await sleep(560);
+        await sleep(650);
       }
       if (cancelled) return;
       setStatusLine(currentStep.do?.(ctxRef.current) ?? currentStep.say(ctxRef.current));
+      setPreparing(false);
     };
     void run();
     return () => {
       cancelled = true;
+      setPreparing(false);
     };
   }, [active, finished, state.stepIndex, replayToken]);
 
@@ -310,8 +355,14 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
     preparedRef.current = null;
   }, []);
   const exit = useCallback(() => {
+    // Выключаем обучение, закрываем все окна Помощника и сбрасываем
+    // транзиентные подсказки — кабинет возвращается в чистое состояние.
     setActive(false);
     setPanelOpen(false);
+    setCelebrate(false);
+    setStatusLine("");
+    setHint(null);
+    closeDialogsRef.current();
   }, []);
 
   const resetNow = useCallback(() => {
@@ -323,6 +374,7 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
     setCelebrate(false);
     setStatusLine("");
     setHint(null);
+    closeDialogsRef.current();
   }, []);
 
   const restart = useCallback(() => {
@@ -330,6 +382,9 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
     setState(emptyState());
     preparedRef.current = null;
     setCelebrate(false);
+    setStatusLine("");
+    setHint(null);
+    closeDialogsRef.current();
     setActive(true);
     setPanelOpen(true);
   }, []);
@@ -378,6 +433,9 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
       hint,
       celebrate,
       completionLeftMs,
+      transcript,
+      preparing,
+      waiting,
       orders,
       summary,
       notifications,
@@ -410,6 +468,9 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
       hint,
       celebrate,
       completionLeftMs,
+      transcript,
+      preparing,
+      waiting,
       orders,
       summary,
       notifications,

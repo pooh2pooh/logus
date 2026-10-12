@@ -49,6 +49,15 @@ export function IconArrowRight(props: IconProps) {
   );
 }
 
+/** Шеврон вниз — развернуть/свернуть панель. */
+export function IconChevron(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 /** Часы — «в пути». */
 export function IconClock(props: IconProps) {
   return (

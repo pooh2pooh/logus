@@ -5,7 +5,7 @@ import type { ThemeName } from "./api/config.js";
 import { useLogout, useNotifications, useSession } from "./hooks/queries.js";
 import { useTheme } from "./hooks/useTheme.js";
 import { AppUiProvider, useAppUi } from "./hooks/useAppUi.js";
-import { TrainingProvider } from "./training/context.js";
+import { TrainingProvider, useTraining } from "./training/context.js";
 import { Login } from "./components/Login.js";
 import { Topbar } from "./components/Topbar.js";
 import { OrdersView } from "./components/OrdersView.js";
@@ -82,11 +82,12 @@ function Shell({ user, theme, onToggleTheme }: { user: string | null; theme: The
   const logout = useLogout();
   const notifications = useNotifications(true);
   const ui = useAppUi();
+  const training = useTraining();
 
   const unread = notifications.data?.unread ?? 0;
 
   return (
-    <div className="app">
+    <div className={`app${training.active ? " app--training" : ""}`}>
       <Topbar
         unread={unread}
         theme={theme}
@@ -96,9 +97,12 @@ function Shell({ user, theme, onToggleTheme }: { user: string | null; theme: The
         onLogout={() => logout.mutate()}
         user={user}
       />
-      <main className="container">
-        <OrdersView onOpenOrder={(id) => ui.setOrderId(id)} />
-      </main>
+      <div className="workspace">
+        <Assistant />
+        <main className="container">
+          <OrdersView onOpenOrder={(id) => ui.setOrderId(id)} />
+        </main>
+      </div>
 
       {ui.orderId ? <OrderDialog id={ui.orderId} onClose={() => ui.setOrderId(null)} /> : null}
       {ui.showNotifications ? (
@@ -106,7 +110,6 @@ function Shell({ user, theme, onToggleTheme }: { user: string | null; theme: The
       ) : null}
       {ui.showPlatforms ? <PlatformsDialog onClose={() => ui.setShowPlatforms(false)} /> : null}
 
-      <Assistant />
       <Tour />
     </div>
   );
