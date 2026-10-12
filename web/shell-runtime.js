@@ -217,7 +217,9 @@
     version: "2",
     ready: false,
     show: function (label) {
-      if (ready) return;
+      // Не блокируем повторный показ после markReady: приложение само управляет
+      // оверлеем во время переходов (screen loader), и ему нужна возможность
+      // снова показать лоадер, например при разлогине.
       setHidden($("shell-overlay"), false);
       bootBusy(true);
       if (label) write("info", label);
@@ -287,7 +289,10 @@
     clearRemoteScripts();
     doomed = false;
     bootBusy(false);
-    setHidden($("shell-overlay"), true);
+    // Если приложение управляет оверлеем (__LOGUS_OVERLAY_CONTROLLED__), не
+    // снимаем его здесь — иначе между готовностью React и скрытием лоадером
+    // мелькнёт промежуточный экран. Видимостью распоряжается приложение.
+    if (!window.__LOGUS_OVERLAY_CONTROLLED__) setHidden($("shell-overlay"), true);
     setHidden($("shell-fallback"), true);
     write("ok", label || "Интерфейс готов");
     var toggle = $("shell-log-toggle");

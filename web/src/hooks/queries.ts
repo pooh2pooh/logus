@@ -1,9 +1,11 @@
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import type { SessionState } from "../api/types.js";
 import {
   acknowledgeNotification,
   checkSession,
@@ -42,7 +44,15 @@ export function useLogout() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: logout,
-    onSuccess: () => qc.clear(),
+    onSuccess: () => {
+      // Сначала «выключаем» живую сессию — приложение сразу уходит на экран входа.
+      // Затем сбрасываем кэш остальных запросов.
+      // Важно НЕ вызывать clear(): он уничтожает живой запрос сессии, а
+      // последующий setQueryData пишет в новый инстанс, которого уже не видит
+      // смонтированный observer — интерфейс остался бы «полуживым» с ошибкой 401.
+      qc.setQueryData<SessionState>(["session"], { authorized: false, setupRequired: false, user: null });
+      qc.removeQueries({ predicate: (q) => q.queryKey[0] !== "session" });
+    },
   });
 }
 
@@ -52,6 +62,9 @@ export function useOrders(filter: Pick<OrdersQuery, "platform" | "status" | "q">
     initialPageParam: 1,
     queryFn: ({ pageParam }) => fetchOrders({ ...filter, page: pageParam, limit: PAGE_SIZE }),
     getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
+    // При смене фильтра/поиска показываем прежний список, пока грузится новый:
+    // без «мигания» лоадером на каждый запрос.
+    placeholderData: keepPreviousData,
     staleTime: 30_000,
     retry: 1,
     refetchOnWindowFocus: false,

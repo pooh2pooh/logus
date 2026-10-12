@@ -154,6 +154,9 @@ a { color: var(--accent); }
 .btn--block { width: 100%; }
 .btn-icon { padding: 0; width: 40px; height: 40px; }
 .btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-ring); }
+/* Иконка в кнопке не сжимается и центрируется по строке текста (иначе
+   svg сбивается по базовой линии и выглядит смещённой). */
+.btn svg { flex: none; }
 
 /* ---------------------------------------------------------------- layout */
 .container { width: min(920px, 100%); margin: 0 auto; padding: 16px; flex: 1; }
@@ -240,12 +243,17 @@ a { color: var(--accent); }
   position: fixed; inset: 0; z-index: 50;
   background: var(--scrim); display: flex; align-items: flex-end; justify-content: center;
   padding: 0; animation: fade .18s ease;
+  /* Как нативное меню: не «резиним» и не проваливаем прокрутку на страницу. */
+  overscroll-behavior: none;
 }
 .dialog {
   width: min(720px, 100%); max-height: 92vh; overflow: auto;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 18px 18px 0 0; box-shadow: var(--shadow-dialog);
   animation: slideup .22s ease;
+  /* Без rubber-band: по краям прокрутки не появляется пустое пространство. */
+  overscroll-behavior: none;
+  overflow-anchor: none;
 }
 @media (min-width: 720px) {
   .scrim { align-items: center; padding: 24px; }
@@ -312,7 +320,9 @@ a { color: var(--accent); }
 
 /* ---------------------------------------------------------------- states */
 .state { text-align: center; padding: 40px 20px; color: var(--muted); }
-.state svg { color: var(--muted); margin-bottom: 10px; }
+/* Только большая иконка состояния. Иначе правило задевало иконку внутри
+   кнопки «Повторить»: давало ей margin и прижимало к верху строки. */
+.state > svg { color: var(--muted); margin-bottom: 10px; }
 .state h3 { color: var(--text); margin: 0 0 6px; font-size: 16px; }
 .state p { margin: 0 auto 14px; max-width: 360px; font-size: 13.5px; }
 .state--error h3 { color: var(--danger-text); }

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { QueryCache, QueryClient, QueryClientProvider, useIsFetching, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { QueryCache, QueryClient, QueryClientProvider, useIsFetching, useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "./api/client.js";
 import type { ThemeName } from "./api/config.js";
 import { useLogout, useNotifications, useSession } from "./hooks/queries.js";
@@ -17,9 +17,10 @@ export const queryClient = new QueryClient({
     queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 15_000 },
   },
   queryCache: new QueryCache({
-    onError: (error) => {
+    onError: (error, query) => {
       // Любой 401 переводит приложение на экран входа (никакого «полуживого» состояния).
-      if (error instanceof ApiError && error.status === 401) {
+      // Саму сессию не трогаем — иначе получили бы цикл «ошибка → refetch → ошибка».
+      if (error instanceof ApiError && error.status === 401 && query.queryKey[0] !== "session") {
         void queryClient.invalidateQueries({ queryKey: ["session"] });
       }
     },
@@ -34,6 +35,32 @@ function ProgressBar() {
       <div className="progress__bar" />
     </div>
   );
+}
+
+/**
+ * Держит shell-оверлей (лоадер) поверх приложения, пока идёт любой переход:
+ * проверка/перезапрос сессии, вход/выход, первичная загрузка данных экрана
+ * или мутации. Пользователь видит либо полностью отрисованный интерфейс,
+ * либо лоадер — промежуточные «скелетоны» и полупустые экраны скрыты.
+ */
+function ScreenLoader() {
+  const session = useSession();
+  const loading = useIsFetching({
+    predicate: (query) => query.state.data === undefined && query.queryKey[0] !== "session",
+  });
+  const mutating = useIsMutating();
+  const busy = session.isPending || session.isFetching || loading > 0 || mutating > 0;
+
+  // Layout-эффект: переключаем оверлей до отрисовки кадра, чтобы не мелькал
+  // промежуточный экран между «готово» и показом лоадера.
+  useLayoutEffect(() => {
+    const loader = window.__LOGUS_LOADER__;
+    if (!loader) return;
+    if (busy) loader.show();
+    else loader.hide();
+  }, [busy]);
+
+  return null;
 }
 
 function Splash({ label }: { label: string }) {
@@ -84,9 +111,10 @@ function AppContent() {
   const qc = useQueryClient();
   // Тема применяется на корне приложения, а не только внутри Shell: иначе экран
   // входа и состояния загрузки игнорируют сохранённый светлый выбор.
-  const { theme, toggle } = useTheme();
+  const { theme, toggle } =   useTheme();
 
-  // Приложение отрисовалось — сообщаем shell-загрузчику, что можно снять оверлей.
+  // Приложение отрисовалось — снимаем watchdog загрузчика. Оверлей при этом
+  // НЕ убираем: видимостью управляет ScreenLoader (см. __LOGUS_OVERLAY_CONTROLLED__).
   useEffect(() => {
     window.__APP_READY__ = true;
     window.__LOGUS_LOADER__?.end();
@@ -107,6 +135,11 @@ function AppContent() {
   }
 
   if (session.isError) {
+    // 401 на проверке сессии — это просто «не авторизован», а не сбой:
+    // показываем экран входа, а не ошибку.
+    if (session.error instanceof ApiError && session.error.status === 401) {
+      return <Login />;
+    }
     const msg = session.error instanceof ApiError ? session.error.message : "Сервер недоступен";
     return (
       <div className="container">
@@ -133,6 +166,7 @@ function AppContent() {
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ScreenLoader />
       <ProgressBar />
       <AppContent />
     </QueryClientProvider>
