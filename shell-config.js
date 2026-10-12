@@ -9,6 +9,13 @@
  *   → ./assets/ → Range-куски → зеркала через прокси → fetch+инлайн.
  */
 window.__LOGUS_SHELL_MIRRORS__ = {
+  /* Режим раздачи бандла (см. docs/DEPLOYMENT.md):
+   *   "mirror" — основной источник CDN-зеркало (хостинг вне РФ);
+   *   "origin" — основной источник сам хостинг (сервер в РФ);
+   *   "auto"   — "mirror", если зеркала заданы, иначе "origin".
+   * На сервере это поле можно менять вручную без пересборки. */
+  mode: "mirror",
+
   /* Зеркала JS-бандла (полные URL или относительные пути). */
   js: [
   "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-CMGkdhg2.js",

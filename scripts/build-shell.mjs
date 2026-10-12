@@ -70,6 +70,13 @@ function detectRepo() {
   return "";
 }
 
+// Режим раздачи бандла: mirror (CDN-зеркало, хостинг вне РФ) | origin (сам
+// хостинг, сервер в РФ) | auto. Значение по умолчанию — mirror; переопределяется
+// переменной окружения SERVE_MODE. На сервере готовый shell-config.js правится
+// вручную (см. docs/DEPLOYMENT.md, скрипт serving-mode).
+const serveMode = (process.env.SERVE_MODE || "mirror").toLowerCase();
+const mode = ["mirror", "origin", "auto"].indexOf(serveMode) === -1 ? "mirror" : serveMode;
+
 const branch = detectBranch();
 const repo = detectRepo();
 function mirrorUrls(file) {
@@ -90,6 +97,7 @@ const diagEndpoint = hasApi ? "./api.php?action=diag" : "";
 
 const configInline = `window.__LOGUS_SHELL_CONFIG__ = {
   version: "0.1.0",
+  mode: ${JSON.stringify(mode)},
   js: "./assets/${jsName}",
   css: "./assets/${cssName}",
   asset: ${JSON.stringify(assetEndpoint)},
@@ -189,7 +197,7 @@ ${iconLinks}
       }
       [hidden] { display: none !important; }
     </style>
-    <link rel="stylesheet" href="./assets/${cssName}" />
+    <link id="shell-css" rel="stylesheet" href="./assets/${cssName}" />
     <script>${configInline}</script>
     <script>window.__LOGUS_SHELL_EARLY_ERRORS__=[];window.addEventListener("error",function(e){var a=window.__LOGUS_SHELL_EARLY_ERRORS__;if(a&&a.length<50)a.push(e);},true);</script>
   </head>
@@ -218,6 +226,7 @@ writeFileSync(path.join(root, "index.html"), shellHtml);
 const templatePath = path.join(webDir, "shell-config.js");
 const template = readFileSync(templatePath, "utf8");
 const shellConfig = template
+  .replace("%%SERVE_MODE%%", JSON.stringify(mode))
   .replace("%%JS_MIRRORS%%", JSON.stringify(jsMirrors, null, 2))
   .replace("%%CSS_MIRRORS%%", JSON.stringify(cssMirrors, null, 2));
 writeFileSync(path.join(root, "shell-config.js"), shellConfig);
@@ -235,5 +244,5 @@ try {
   if (error.code !== "ENOENT") throw error;
 }
 
-console.log(`build-shell: собран index.html + shell-config.js (${jsName}, ${cssName}${removed ? `, удалено ассетов: ${removed}` : ""})`);
+console.log(`build-shell: собран index.html + shell-config.js (${jsName}, ${cssName}, режим: ${mode}${removed ? `, удалено ассетов: ${removed}` : ""})`);
 console.log(`build-shell: зеркала ${repo ? `→ ${repo}@${branch}` : "не найдены (нет github remote)"}`);
