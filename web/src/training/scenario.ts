@@ -97,7 +97,7 @@ export const STEPS: Step[] = [
     say: () => "Важные события собираются в уведомлениях — ничего не потеряется. Закрываю карточку и открываю колокольчик.",
     do: () => "Нажмите «Прочитано» на любом уведомлении.",
     target: '[data-tour="notifications-dialog"]',
-    prepare: [{ type: "closeDialogs" }, { type: "openNotifications" }, { type: "closeDialogs" }],
+    prepare: [{ type: "closeDialogs" }, { type: "openNotifications" }],
     done: (ctx) => Boolean(ctx.flags.notificationsAcked),
   },
 ];

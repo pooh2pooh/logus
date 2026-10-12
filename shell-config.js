@@ -18,8 +18,8 @@ window.__LOGUS_SHELL_MIRRORS__ = {
 
   /* Зеркала JS-бандла (полные URL или относительные пути). */
   js: [
-  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-qIgmxjFR.js",
-  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-qIgmxjFR.js"
+  "https://cdn.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-vvH-bTJY.js",
+  "https://fastly.jsdelivr.net/gh/pooh2pooh/logus@main/assets/app-vvH-bTJY.js"
 ],
 
   /* Зеркала CSS-бандла. */

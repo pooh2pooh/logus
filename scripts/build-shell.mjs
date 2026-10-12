@@ -162,9 +162,6 @@ ${iconLinks}
       .shell-loader__line { stroke: rgba(154, 163, 178, 0.18); stroke-width: 2; fill: none; }
       .shell-loader__line--active { stroke: #4c8bf5; stroke-width: 2.5; stroke-dasharray: 6 4; animation: dash 1.2s linear infinite; }
       @keyframes dash { to { stroke-dashoffset: -20; } }
-      .shell-loader__station { fill: rgba(154, 163, 178, 0.35); }
-      .shell-loader__station--active { fill: #4c8bf5; animation: pulse 1.6s ease-in-out infinite; }
-      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
       .shell-loader__dot { fill: #4c8bf5; filter: drop-shadow(0 0 6px rgba(76, 139, 245, 0.6)); animation: dotmove 3s ease-in-out infinite; }
       @keyframes dotmove {
         0% { transform: translate(0, 0); }
@@ -230,24 +227,14 @@ ${iconLinks}
       <div class="shell-loader" role="status" aria-live="polite">
         <svg class="shell-loader__map" viewBox="0 0 280 130" aria-hidden="true">
           <g class="shell-loader__lines">
-            <path class="shell-loader__line" d="M 10 110 H 270" />
-            <path class="shell-loader__line" d="M 10 65 H 270" />
-            <path class="shell-loader__line" d="M 10 20 H 270" />
-            <path class="shell-loader__line" d="M 50 10 V 120" />
-            <path class="shell-loader__line" d="M 140 10 V 120" />
-            <path class="shell-loader__line" d="M 230 10 V 120" />
-            <path class="shell-loader__line" d="M 10 110 L 270 20" />
-            <path class="shell-loader__line" d="M 10 20 L 270 110" />
-          </g>
-          <g class="shell-loader__stations">
-            <circle class="shell-loader__station" cx="50" cy="110" r="3" />
-            <circle class="shell-loader__station" cx="140" cy="65" r="3" />
-            <circle class="shell-loader__station" cx="230" cy="20" r="3" />
-            <circle class="shell-loader__station" cx="50" cy="65" r="3" />
-            <circle class="shell-loader__station" cx="140" cy="20" r="3" />
-            <circle class="shell-loader__station" cx="230" cy="110" r="3" />
-            <circle class="shell-loader__station" cx="95" cy="87" r="3" />
-            <circle class="shell-loader__station" cx="185" cy="42" r="3" />
+            <path class="shell-loader__line" d="M 10 110 C 60 110, 80 90, 140 90 S 220 70, 270 70" />
+            <path class="shell-loader__line" d="M 10 65 C 70 65, 90 50, 150 50 S 210 35, 270 35" />
+            <path class="shell-loader__line" d="M 10 20 C 50 20, 80 35, 140 35 S 230 50, 270 50" />
+            <path class="shell-loader__line" d="M 50 10 C 50 40, 70 60, 70 90 S 60 110, 60 120" />
+            <path class="shell-loader__line" d="M 140 10 C 140 45, 120 70, 120 95 S 150 115, 150 120" />
+            <path class="shell-loader__line" d="M 230 10 C 230 40, 210 65, 210 90 S 220 110, 220 120" />
+            <path class="shell-loader__line" d="M 10 110 C 70 100, 100 80, 150 60 S 220 40, 270 20" />
+            <path class="shell-loader__line" d="M 10 20 C 60 30, 100 50, 150 70 S 220 95, 270 110" />
           </g>
           <circle class="shell-loader__dot" r="5" cx="140" cy="65" />
         </svg>

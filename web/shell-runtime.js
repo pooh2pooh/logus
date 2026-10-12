@@ -271,7 +271,6 @@
   var loaderAnim = (function(){
     var label = null;
     var lines = null;
-    var stations = null;
     var labels = ["Загружаем заказы","Синхронизируем площадки","Проверяем документы","Обновляем статусы","Строим маршрут"];
     var lineKeys = [
       [0,1,2],[3,4,5],[6,7],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]
@@ -283,20 +282,14 @@
       var overlay = $("shell-overlay");
       if(overlay){
         lines = overlay.querySelectorAll(".shell-loader__line");
-        stations = overlay.querySelectorAll(".shell-loader__station");
       }
     }
     function applyRoute(){
-      if(!lines || !stations) return;
+      if(!lines) return;
       var key = lineKeys[Math.floor(Math.random()*lineKeys.length)];
       for(var i=0;i<lines.length;i++){
         if(key.indexOf(i) !== -1) lines[i].classList.add("shell-loader__line--active");
         else lines[i].classList.remove("shell-loader__line--active");
-      }
-      var mid = key[Math.floor(key.length/2)];
-      for(var j=0;j<stations.length;j++){
-        if(j === mid) stations[j].classList.add("shell-loader__station--active");
-        else stations[j].classList.remove("shell-loader__station--active");
       }
     }
     function nextLabel(){
