@@ -26,6 +26,29 @@
       }
       @keyframes shellspin { to { transform: rotate(360deg); } }
 
+      .shell-loader { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+      .shell-loader__map { width: 280px; height: 130px; overflow: visible; }
+      .shell-loader__line { stroke: rgba(154, 163, 178, 0.18); stroke-width: 2; fill: none; }
+      .shell-loader__line--active { stroke: #4c8bf5; stroke-width: 2.5; stroke-dasharray: 6 4; animation: dash 1.2s linear infinite; }
+      @keyframes dash { to { stroke-dashoffset: -20; } }
+      .shell-loader__station { fill: rgba(154, 163, 178, 0.35); }
+      .shell-loader__station--active { fill: #4c8bf5; animation: pulse 1.6s ease-in-out infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+      .shell-loader__dot { fill: #4c8bf5; filter: drop-shadow(0 0 6px rgba(76, 139, 245, 0.6)); animation: dotmove 3s ease-in-out infinite; }
+      @keyframes dotmove {
+        0% { transform: translate(0, 0); }
+        25% { transform: translate(60px, -20px); }
+        50% { transform: translate(120px, 10px); }
+        75% { transform: translate(180px, -15px); }
+        100% { transform: translate(240px, 0); }
+      }
+      .shell-loader__label {
+        font: 500 13px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: #9aa3b2; letter-spacing: 0.02em; min-height: 18px;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+      }
+      .shell-loader__label.is-fading { opacity: 0; transform: translateY(4px); }
+
       #shell-log {
         position: fixed; left: 50%; bottom: 20px; z-index: 10002;
         width: min(680px, calc(100vw - 32px)); max-height: 42vh; overflow: auto;
@@ -70,7 +93,7 @@
     <script>window.__LOGUS_SHELL_CONFIG__ = {
   version: "0.1.0",
   mode: "mirror",
-  js: "./assets/app-Dzkl-tzB.js",
+  js: "./assets/app-qIgmxjFR.js",
   css: "./assets/app-CleESPP2.css",
   asset: "./api.php?action=asset",
   diag: "./api.php?action=diag",
@@ -94,22 +117,30 @@
     <div id="root"></div>
     <div id="shell-overlay" aria-hidden="true">
       <div class="shell-loader" role="status" aria-live="polite">
-        <svg class="shell-loader__map" viewBox="0 0 240 100" aria-hidden="true">
-          <path class="shell-loader__road" d="M 12 64 H 36 V 40 H 76 V 64 H 116 V 40 H 156 V 64 H 196 V 40 H 228" />
-          <path class="shell-loader__road--progress" id="shell-loader-road-progress" d="M 12 64 H 36 V 40 H 76 V 64 H 116 V 40 H 156 V 64 H 196 V 40 H 228" />
-          <circle class="shell-loader__car" id="shell-loader-car" cx="12" cy="64" r="4" />
-          <g class="shell-loader__checks" fill="rgba(154,163,178,.6)">
-            <circle cx="36" cy="40" r="2.5" />
-            <circle cx="76" cy="64" r="2.5" />
-            <circle cx="116" cy="40" r="2.5" />
-            <circle cx="156" cy="64" r="2.5" />
-            <circle cx="196" cy="40" r="2.5" />
+        <svg class="shell-loader__map" viewBox="0 0 280 130" aria-hidden="true">
+          <g class="shell-loader__lines">
+            <path class="shell-loader__line" d="M 10 110 H 270" />
+            <path class="shell-loader__line" d="M 10 65 H 270" />
+            <path class="shell-loader__line" d="M 10 20 H 270" />
+            <path class="shell-loader__line" d="M 50 10 V 120" />
+            <path class="shell-loader__line" d="M 140 10 V 120" />
+            <path class="shell-loader__line" d="M 230 10 V 120" />
+            <path class="shell-loader__line" d="M 10 110 L 270 20" />
+            <path class="shell-loader__line" d="M 10 20 L 270 110" />
           </g>
+          <g class="shell-loader__stations">
+            <circle class="shell-loader__station" cx="50" cy="110" r="3" />
+            <circle class="shell-loader__station" cx="140" cy="65" r="3" />
+            <circle class="shell-loader__station" cx="230" cy="20" r="3" />
+            <circle class="shell-loader__station" cx="50" cy="65" r="3" />
+            <circle class="shell-loader__station" cx="140" cy="20" r="3" />
+            <circle class="shell-loader__station" cx="230" cy="110" r="3" />
+            <circle class="shell-loader__station" cx="95" cy="87" r="3" />
+            <circle class="shell-loader__station" cx="185" cy="42" r="3" />
+          </g>
+          <circle class="shell-loader__dot" r="5" cx="140" cy="65" />
         </svg>
-        <div class="shell-loader__label" id="shell-loader-label">Склад</div>
-        <div class="shell-loader__bar">
-          <div class="shell-loader__bar-fill" id="shell-loader-bar-fill"></div>
-        </div>
+        <div class="shell-loader__label" id="shell-loader-label">Загружаем заказы</div>
       </div>
     </div>
     <div id="shell-log" role="log" aria-live="polite"></div>
@@ -394,59 +425,61 @@
     isReady: function () { return ready; },
   };
   var loaderAnim = (function(){
-    var bar = null, label = null, road = null, car = null;
-    var labels = ["Склад","Транспорт","Документы","Прогноз ETA"];
+    var label = null;
+    var lines = null;
+    var stations = null;
+    var labels = ["Загружаем заказы","Синхронизируем площадки","Проверяем документы","Обновляем статусы","Строим маршрут"];
+    var lineKeys = [
+      [0,1,2],[3,4,5],[6,7],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]
+    ];
     var idx = -1;
     var timer = null;
-    var pct = 0;
     function init(){
-      bar = $("shell-loader-bar-fill");
       label = $("shell-loader-label");
-      road = $("shell-loader-road-progress");
-      car = $("shell-loader-car");
-      var path = road ? road.getAttribute("d") : null;
-      if(road){ try{ var len = road.getTotalLength ? road.getTotalLength() : 520; road.style.strokeDasharray = String(len); road.style.strokeDashoffset = String(len); }catch(e){} }
+      var overlay = $("shell-overlay");
+      if(overlay){
+        lines = overlay.querySelectorAll(".shell-loader__line");
+        stations = overlay.querySelectorAll(".shell-loader__station");
+      }
     }
-    function setPct(v){
-      pct = Math.max(0, Math.min(98, v));
-      if(bar) bar.style.width = pct + "%";
-      if(road){
-        try{
-          var len = road.getTotalLength ? road.getTotalLength() : 520;
-          var off = len * (1 - pct/100);
-          road.style.strokeDashoffset = String(off);
-          if(car && road.getPointAtLength){
-            var pt = road.getPointAtLength(len * (pct/100));
-            car.style.transform = "translate(" + (pt.x-12) + "px," + (pt.y-64) + "px)";
-          }
-        }catch(e){}
+    function applyRoute(){
+      if(!lines || !stations) return;
+      var key = lineKeys[Math.floor(Math.random()*lineKeys.length)];
+      for(var i=0;i<lines.length;i++){
+        if(key.indexOf(i) !== -1) lines[i].classList.add("shell-loader__line--active");
+        else lines[i].classList.remove("shell-loader__line--active");
+      }
+      var mid = key[Math.floor(key.length/2)];
+      for(var j=0;j<stations.length;j++){
+        if(j === mid) stations[j].classList.add("shell-loader__station--active");
+        else stations[j].classList.remove("shell-loader__station--active");
       }
     }
     function nextLabel(){
       if(!label) return;
-      var next;
-      do{ next = Math.floor(Math.random()*labels.length); }while(next === idx && labels.length>1);
-      idx = next;
-      label.textContent = labels[idx];
-      label.classList.remove("is-pulse");
-      void label.offsetWidth;
-      label.classList.add("is-pulse");
+      label.classList.add("is-fading");
+      setTimeout(function(){
+        var next;
+        do{ next = Math.floor(Math.random()*labels.length); }while(next === idx && labels.length>1);
+        idx = next;
+        label.textContent = labels[idx];
+        label.classList.remove("is-fading");
+      }, 400);
     }
     function start(){
       init();
-      setPct(0);
+      applyRoute();
       nextLabel();
       if(timer) clearInterval(timer);
       timer = setInterval(function(){
+        applyRoute();
         nextLabel();
-        setPct(pct + 4 + Math.random()*6);
-      }, 900 + Math.random()*700);
+      }, 2600);
     }
     function stop(){
       if(timer){ clearInterval(timer); timer = null; }
-      setPct(100);
     }
-    return { start:start, stop:stop, setPct:setPct };
+    return { start:start, stop:stop };
   })();
   try {
     window.__LOGUS_LOADER__ = loader;

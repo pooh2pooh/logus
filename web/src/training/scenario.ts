@@ -107,24 +107,6 @@ function statusOf(ctx: StepEval, id: string): OrderStatus | undefined {
 }
 
 /** Короткое описание того, что Помощник делает прямо сейчас. */
-export function describePrepare(action: PrepareAction): string {
-  switch (action.type) {
-    case "openPlatforms":
-      return "Открываю панель площадок…";
-    case "openNotifications":
-      return "Открываю уведомления…";
-    case "closeDialogs":
-      return "Закрываю лишние окна…";
-    case "setStatus":
-      return action.value === "problem" ? "Включаю фильтр «Проблема»…" : "Меняю фильтр…";
-    case "openOrder":
-      return "Открываю карточку заказа…";
-    case "sync":
-      return "Запускаю синхронизацию…";
-    default:
-      return "Готовлю следующий шаг…";
-  }
-}
 
 export const FINISH_TITLE = "Обучение пройдено";
 

@@ -36,9 +36,11 @@ import {
   TRAINING_RESET_MS,
   type TrainingState,
 } from "./store.js";
-import { describePrepare, isFinished, STEPS, type PrepareAction, type Step, type StepEval } from "./scenario.js";
+import { isFinished, STEPS, type PrepareAction, type Step, type StepEval } from "./scenario.js";
 
 const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+const randomDelay = (min = 3000, max = 6000) => min + Math.random() * (max - min);
+const randomSleep = (min = 3000, max = 6000) => sleep(randomDelay(min, max));
 
 export interface OrdersFilter {
   platform?: string;
@@ -265,19 +267,13 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
     setPreparing(true);
     let cancelled = false;
     const run = async () => {
-      setStatusLine(currentStep.say(ctxRef.current));
-      await sleep(6000);
+      await randomSleep();
       for (const action of currentStep.prepare ?? []) {
         if (cancelled) return;
-        setStatusLine(describePrepare(action));
-        await sleep(6000);
-        if (cancelled) return;
         runPrepareRef.current(action);
-        await sleep(6000);
+        await sleep(1500);
       }
       if (cancelled) return;
-      setStatusLine(currentStep.do?.(ctxRef.current) ?? currentStep.say(ctxRef.current));
-      await sleep(6000);
       setPreparing(false);
     };
     void run();
@@ -305,7 +301,7 @@ export function TrainingProvider({ children }: { children: ReactNode }) {
         if (isFinished(nextIndex) && prev.completedAt === null) next.completedAt = Date.now();
         return next;
       });
-    }, 6000);
+    }, randomDelay());
     return () => window.clearTimeout(timer);
   }, [active, finished, state.stepIndex, ctx]);
 

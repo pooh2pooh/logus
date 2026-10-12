@@ -77,7 +77,7 @@ function Chat() {
             <i />
             <i />
           </span>
-          {t.statusLine || "Готовлю шаг…"}
+          Готовлю шаг…
         </div>
       ) : null}
       {t.celebrate ? <div className="assistant__typing assistant__typing--ok">Отлично — идём дальше.</div> : null}
@@ -151,11 +151,9 @@ export function Assistant() {
     ? t.completionLeftMs !== null
       ? `Обучение пройдено · ${fmtLeft(t.completionLeftMs)}`
       : "Обучение пройдено"
-    : t.waiting && t.action
-      ? t.action
-      : t.preparing
-        ? t.statusLine || "Готовлю шаг…"
-        : `Обучение · шаг ${t.stepNumber} из ${t.totalSteps}`;
+    : t.preparing
+      ? "Готовлю шаг…"
+      : `Обучение · шаг ${t.stepNumber} из ${t.totalSteps}`;
 
   if (t.active && !t.finished) {
     if (isWide) {

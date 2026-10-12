@@ -269,59 +269,61 @@
     isReady: function () { return ready; },
   };
   var loaderAnim = (function(){
-    var bar = null, label = null, road = null, car = null;
-    var labels = ["Склад","Транспорт","Документы","Прогноз ETA"];
+    var label = null;
+    var lines = null;
+    var stations = null;
+    var labels = ["Загружаем заказы","Синхронизируем площадки","Проверяем документы","Обновляем статусы","Строим маршрут"];
+    var lineKeys = [
+      [0,1,2],[3,4,5],[6,7],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]
+    ];
     var idx = -1;
     var timer = null;
-    var pct = 0;
     function init(){
-      bar = $("shell-loader-bar-fill");
       label = $("shell-loader-label");
-      road = $("shell-loader-road-progress");
-      car = $("shell-loader-car");
-      var path = road ? road.getAttribute("d") : null;
-      if(road){ try{ var len = road.getTotalLength ? road.getTotalLength() : 520; road.style.strokeDasharray = String(len); road.style.strokeDashoffset = String(len); }catch(e){} }
+      var overlay = $("shell-overlay");
+      if(overlay){
+        lines = overlay.querySelectorAll(".shell-loader__line");
+        stations = overlay.querySelectorAll(".shell-loader__station");
+      }
     }
-    function setPct(v){
-      pct = Math.max(0, Math.min(98, v));
-      if(bar) bar.style.width = pct + "%";
-      if(road){
-        try{
-          var len = road.getTotalLength ? road.getTotalLength() : 520;
-          var off = len * (1 - pct/100);
-          road.style.strokeDashoffset = String(off);
-          if(car && road.getPointAtLength){
-            var pt = road.getPointAtLength(len * (pct/100));
-            car.style.transform = "translate(" + (pt.x-12) + "px," + (pt.y-64) + "px)";
-          }
-        }catch(e){}
+    function applyRoute(){
+      if(!lines || !stations) return;
+      var key = lineKeys[Math.floor(Math.random()*lineKeys.length)];
+      for(var i=0;i<lines.length;i++){
+        if(key.indexOf(i) !== -1) lines[i].classList.add("shell-loader__line--active");
+        else lines[i].classList.remove("shell-loader__line--active");
+      }
+      var mid = key[Math.floor(key.length/2)];
+      for(var j=0;j<stations.length;j++){
+        if(j === mid) stations[j].classList.add("shell-loader__station--active");
+        else stations[j].classList.remove("shell-loader__station--active");
       }
     }
     function nextLabel(){
       if(!label) return;
-      var next;
-      do{ next = Math.floor(Math.random()*labels.length); }while(next === idx && labels.length>1);
-      idx = next;
-      label.textContent = labels[idx];
-      label.classList.remove("is-pulse");
-      void label.offsetWidth;
-      label.classList.add("is-pulse");
+      label.classList.add("is-fading");
+      setTimeout(function(){
+        var next;
+        do{ next = Math.floor(Math.random()*labels.length); }while(next === idx && labels.length>1);
+        idx = next;
+        label.textContent = labels[idx];
+        label.classList.remove("is-fading");
+      }, 400);
     }
     function start(){
       init();
-      setPct(0);
+      applyRoute();
       nextLabel();
       if(timer) clearInterval(timer);
       timer = setInterval(function(){
+        applyRoute();
         nextLabel();
-        setPct(pct + 4 + Math.random()*6);
-      }, 900 + Math.random()*700);
+      }, 2600);
     }
     function stop(){
       if(timer){ clearInterval(timer); timer = null; }
-      setPct(100);
     }
-    return { start:start, stop:stop, setPct:setPct };
+    return { start:start, stop:stop };
   })();
   try {
     window.__LOGUS_LOADER__ = loader;
