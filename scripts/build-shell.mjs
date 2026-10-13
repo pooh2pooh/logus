@@ -194,14 +194,14 @@ ${iconLinks}
         transform-box: fill-box;
         transform-origin: center bottom;
         opacity: 0;
-        transform: translateZ(28px);
+        transform: translate(var(--mx, 0), var(--my, 0)) translateZ(28px);
       }
-      .shell-loader__marker--seg1-start { animation: marker-seg1 9s ease-in-out infinite; }
-      .shell-loader__marker--seg1-end { animation: marker-seg1 9s ease-in-out infinite; }
-      .shell-loader__marker--seg2-start { animation: marker-seg2 9s ease-in-out infinite 3s; }
-      .shell-loader__marker--seg2-end { animation: marker-seg2 9s ease-in-out infinite 3s; }
-      .shell-loader__marker--seg3-start { animation: marker-seg3 9s ease-in-out infinite 6s; }
-      .shell-loader__marker--seg3-end { animation: marker-seg3 9s ease-in-out infinite 6s; }
+      .shell-loader__marker--seg1-start { --mx: 35px; --my: 55px; animation: marker-seg1 9s ease-in-out infinite; }
+      .shell-loader__marker--seg1-end { --mx: 280px; --my: 115px; animation: marker-seg1 9s ease-in-out infinite; }
+      .shell-loader__marker--seg2-start { --mx: 280px; --my: 30px; animation: marker-seg2 9s ease-in-out infinite 3s; }
+      .shell-loader__marker--seg2-end { --mx: 45px; --my: 90px; animation: marker-seg2 9s ease-in-out infinite 3s; }
+      .shell-loader__marker--seg3-start { --mx: 45px; --my: 145px; animation: marker-seg3 9s ease-in-out infinite 6s; }
+      .shell-loader__marker--seg3-end { --mx: 235px; --my: 5px; animation: marker-seg3 9s ease-in-out infinite 6s; }
       @keyframes marker-seg1 {
         0%, 4%, 44%, 100% { opacity: 0; }
         6%, 40% { opacity: 1; }
@@ -323,27 +323,27 @@ ${iconLinks}
             <path class="shell-loader__route shell-loader__route--seg3" d="M 45 130 V 70 H 90 V 20 H 235" pathLength="300" />
           </g>
           <circle class="shell-loader__dot" r="5" cx="0" cy="0" style="offset-path: path('M 35 70 H 165 V 130 H 280');" />
-          <g class="shell-loader__marker shell-loader__marker--seg1-start" transform="translate(35, 55)">
+          <g class="shell-loader__marker shell-loader__marker--seg1-start">
             <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
             <circle cx="0" cy="-12" r="3.5" fill="#fff" />
           </g>
-          <g class="shell-loader__marker shell-loader__marker--seg1-end" transform="translate(280, 115)">
+          <g class="shell-loader__marker shell-loader__marker--seg1-end">
             <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
             <circle cx="0" cy="-12" r="3.5" fill="#fff" />
           </g>
-          <g class="shell-loader__marker shell-loader__marker--seg2-start" transform="translate(280, 30)">
+          <g class="shell-loader__marker shell-loader__marker--seg2-start">
             <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
             <circle cx="0" cy="-12" r="3.5" fill="#fff" />
           </g>
-          <g class="shell-loader__marker shell-loader__marker--seg2-end" transform="translate(45, 90)">
+          <g class="shell-loader__marker shell-loader__marker--seg2-end">
             <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
             <circle cx="0" cy="-12" r="3.5" fill="#fff" />
           </g>
-          <g class="shell-loader__marker shell-loader__marker--seg3-start" transform="translate(45, 145)">
+          <g class="shell-loader__marker shell-loader__marker--seg3-start">
             <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
             <circle cx="0" cy="-12" r="3.5" fill="#fff" />
           </g>
-          <g class="shell-loader__marker shell-loader__marker--seg3-end" transform="translate(235, 5)">
+          <g class="shell-loader__marker shell-loader__marker--seg3-end">
             <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
             <circle cx="0" cy="-12" r="3.5" fill="#fff" />
           </g>
