@@ -270,27 +270,11 @@
   };
   var loaderAnim = (function(){
     var label = null;
-    var lines = null;
-    var labels = ["Загружаем заказы","Синхронизируем площадки","Проверяем документы","Обновляем статусы","Строим маршрут"];
-    var lineKeys = [
-      [0,1,2],[3,4,5],[6,7],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]
-    ];
+    var labels = ["Строим маршрут","Загружаем заказы","Синхронизируем площадки","Проверяем документы","Обновляем статусы"];
     var idx = -1;
     var timer = null;
     function init(){
       label = $("shell-loader-label");
-      var overlay = $("shell-overlay");
-      if(overlay){
-        lines = overlay.querySelectorAll(".shell-loader__line");
-      }
-    }
-    function applyRoute(){
-      if(!lines) return;
-      var key = lineKeys[Math.floor(Math.random()*lineKeys.length)];
-      for(var i=0;i<lines.length;i++){
-        if(key.indexOf(i) !== -1) lines[i].classList.add("shell-loader__line--active");
-        else lines[i].classList.remove("shell-loader__line--active");
-      }
     }
     function nextLabel(){
       if(!label) return;
@@ -305,13 +289,9 @@
     }
     function start(){
       init();
-      applyRoute();
       nextLabel();
       if(timer) clearInterval(timer);
-      timer = setInterval(function(){
-        applyRoute();
-        nextLabel();
-      }, 2600);
+      timer = setInterval(nextLabel, 2600);
     }
     function stop(){
       if(timer){ clearInterval(timer); timer = null; }

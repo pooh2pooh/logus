@@ -157,18 +157,53 @@ ${iconLinks}
       }
       @keyframes shellspin { to { transform: rotate(360deg); } }
 
-      .shell-loader { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-      .shell-loader__map { width: 280px; height: 130px; overflow: visible; }
-      .shell-loader__line { stroke: rgba(154, 163, 178, 0.18); stroke-width: 2; fill: none; }
-      .shell-loader__line--active { stroke: #4c8bf5; stroke-width: 2.5; stroke-dasharray: 6 4; animation: dash 1.2s linear infinite; }
-      @keyframes dash { to { stroke-dashoffset: -20; } }
-      .shell-loader__dot { fill: #4c8bf5; filter: drop-shadow(0 0 6px rgba(76, 139, 245, 0.6)); animation: dotmove 3s ease-in-out infinite; }
-      @keyframes dotmove {
-        0% { transform: translate(0, 0); }
-        25% { transform: translate(60px, -20px); }
-        50% { transform: translate(120px, 10px); }
-        75% { transform: translate(180px, -15px); }
-        100% { transform: translate(240px, 0); }
+      .shell-loader { display: flex; flex-direction: column; align-items: center; gap: 16px; perspective: 900px; }
+      .shell-loader__map {
+        width: 300px; height: 170px; overflow: visible;
+        transform: rotateX(48deg) rotateZ(-6deg);
+        border-radius: 12px;
+        background: #d9d2c4;
+        box-shadow: 0 18px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.08);
+      }
+      .shell-loader__roads { stroke: #f2eee6; stroke-width: 5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .shell-loader__roads--minor { stroke: #e6e0d3; stroke-width: 3.5; }
+      .shell-loader__highway { stroke: #f7c948; stroke-width: 7; fill: none; stroke-linecap: round; }
+      .shell-loader__highway-line { stroke: rgba(0,0,0,.15); stroke-width: 1; fill: none; stroke-dasharray: 4 5; }
+      .shell-loader__block { fill: #c9c2b4; }
+      .shell-loader__block--alt { fill: #cfc8ba; }
+      .shell-loader__park { fill: #a8c686; }
+      .shell-loader__park--alt { fill: #9abd78; }
+      .shell-loader__route {
+        stroke: #2f6ae0; stroke-width: 4.5; fill: none;
+        stroke-linecap: round; stroke-linejoin: round;
+        filter: drop-shadow(0 2px 3px rgba(47,106,224,.45));
+      }
+      .shell-loader__route--seg1 { animation: route-draw 7s ease-in-out infinite; }
+      .shell-loader__route--seg2 { animation: route-draw 7s ease-in-out infinite 2.2s; }
+      .shell-loader__route--seg3 { animation: route-draw 7s ease-in-out infinite 4.4s; }
+      @keyframes route-draw {
+        0% { stroke-dashoffset: 240; opacity: 0; }
+        8% { opacity: 1; }
+        28% { stroke-dashoffset: 0; opacity: 1; }
+        42% { stroke-dashoffset: 0; opacity: 1; }
+        56% { opacity: 0; }
+        100% { stroke-dashoffset: 240; opacity: 0; }
+      }
+      .shell-loader__marker { transform-box: fill-box; transform-origin: center bottom; }
+      .shell-loader__marker--pulse { animation: marker-pulse 7s ease-in-out infinite 2.2s; }
+      @keyframes marker-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+      .shell-loader__dot {
+        fill: #fff; stroke: #2f6ae0; stroke-width: 2.5;
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,.35));
+        animation: dot-travel 7s ease-in-out infinite 2.2s;
+      }
+      @keyframes dot-travel {
+        0% { offset-distance: 0%; opacity: 0; }
+        8% { opacity: 1; }
+        28% { offset-distance: 100%; opacity: 1; }
+        42% { offset-distance: 100%; opacity: 1; }
+        56% { offset-distance: 0%; opacity: 0; }
+        100% { offset-distance: 0%; opacity: 0; }
       }
       .shell-loader__label {
         font: 500 13px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -225,20 +260,55 @@ ${iconLinks}
     <div id="root"></div>
     <div id="shell-overlay" aria-hidden="true">
       <div class="shell-loader" role="status" aria-live="polite">
-        <svg class="shell-loader__map" viewBox="0 0 280 130" aria-hidden="true">
-          <g class="shell-loader__lines">
-            <path class="shell-loader__line" d="M 10 110 C 60 110, 80 90, 140 90 S 220 70, 270 70" />
-            <path class="shell-loader__line" d="M 10 65 C 70 65, 90 50, 150 50 S 210 35, 270 35" />
-            <path class="shell-loader__line" d="M 10 20 C 50 20, 80 35, 140 35 S 230 50, 270 50" />
-            <path class="shell-loader__line" d="M 50 10 C 50 40, 70 60, 70 90 S 60 110, 60 120" />
-            <path class="shell-loader__line" d="M 140 10 C 140 45, 120 70, 120 95 S 150 115, 150 120" />
-            <path class="shell-loader__line" d="M 230 10 C 230 40, 210 65, 210 90 S 220 110, 220 120" />
-            <path class="shell-loader__line" d="M 10 110 C 70 100, 100 80, 150 60 S 220 40, 270 20" />
-            <path class="shell-loader__line" d="M 10 20 C 60 30, 100 50, 150 70 S 220 95, 270 110" />
+        <svg class="shell-loader__map" viewBox="0 0 320 170" aria-hidden="true">
+          <g class="shell-loader__blocks">
+            <rect class="shell-loader__block" x="20" y="20" width="60" height="35" rx="3" />
+            <rect class="shell-loader__block--alt" x="100" y="20" width="50" height="35" rx="3" />
+            <rect class="shell-loader__block" x="170" y="20" width="55" height="35" rx="3" />
+            <rect class="shell-loader__block--alt" x="245" y="20" width="55" height="35" rx="3" />
+            <rect class="shell-loader__block--alt" x="20" y="80" width="45" height="40" rx="3" />
+            <rect class="shell-loader__block" x="100" y="80" width="60" height="40" rx="3" />
+            <rect class="shell-loader__block--alt" x="180" y="80" width="45" height="40" rx="3" />
+            <rect class="shell-loader__block" x="245" y="80" width="55" height="40" rx="3" />
+            <rect class="shell-loader__block" x="20" y="140" width="55" height="25" rx="3" />
+            <rect class="shell-loader__block--alt" x="100" y="140" width="45" height="25" rx="3" />
+            <rect class="shell-loader__block" x="170" y="140" width="60" height="25" rx="3" />
+            <rect class="shell-loader__block--alt" x="250" y="140" width="50" height="25" rx="3" />
           </g>
-          <circle class="shell-loader__dot" r="5" cx="140" cy="65" />
+          <g class="shell-loader__parks">
+            <rect class="shell-loader__park" x="170" y="70" width="50" height="55" rx="4" />
+            <rect class="shell-loader__park--alt" x="90" y="130" width="70" height="35" rx="4" />
+          </g>
+          <g class="shell-loader__roads">
+            <path class="shell-loader__roads" d="M 0 70 H 320" />
+            <path class="shell-loader__roads" d="M 0 130 H 320" />
+            <path class="shell-loader__roads" d="M 90 0 V 170" />
+            <path class="shell-loader__roads" d="M 235 0 V 170" />
+            <path class="shell-loader__roads--minor" d="M 165 0 V 170" />
+            <path class="shell-loader__roads--minor" d="M 0 105 H 320" />
+          </g>
+          <g class="shell-loader__highways">
+            <path class="shell-loader__highway" d="M 0 45 H 320" />
+            <path class="shell-loader__highway-line" d="M 0 45 H 320" />
+            <path class="shell-loader__highway" d="M 160 0 V 170" />
+            <path class="shell-loader__highway-line" d="M 160 0 V 170" />
+          </g>
+          <g class="shell-loader__routes">
+            <path class="shell-loader__route shell-loader__route--seg1" d="M 35 70 H 165" pathLength="240" />
+            <path class="shell-loader__route shell-loader__route--seg2" d="M 165 70 V 130" pathLength="240" />
+            <path class="shell-loader__route shell-loader__route--seg3" d="M 165 130 H 280" pathLength="240" />
+          </g>
+          <circle class="shell-loader__dot" r="5" cx="0" cy="0" style="offset-path: path('M 35 70 H 165');" />
+          <g class="shell-loader__marker" transform="translate(35, 55)">
+            <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
+            <circle cx="0" cy="-12" r="3.5" fill="#fff" />
+          </g>
+          <g class="shell-loader__marker shell-loader__marker--pulse" transform="translate(280, 115)">
+            <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
+            <circle cx="0" cy="-12" r="3.5" fill="#fff" />
+          </g>
         </svg>
-        <div class="shell-loader__label" id="shell-loader-label">Загружаем заказы</div>
+        <div class="shell-loader__label" id="shell-loader-label">Строим маршрут</div>
       </div>
     </div>
     <div id="shell-log" role="log" aria-live="polite"></div>
