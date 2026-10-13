@@ -174,13 +174,13 @@ ${iconLinks}
       .shell-loader__park { fill: #1e2229; }
       .shell-loader__park--alt { fill: #20242c; }
       .shell-loader__route {
-        stroke: #e7e9ee; stroke-width: 3.5; fill: none;
+        fill: none;
         stroke-linecap: round; stroke-linejoin: round;
         filter: drop-shadow(0 2px 4px rgba(231,233,238,.3));
       }
-      .shell-loader__route--seg1 { animation: route-draw 9s ease-in-out infinite; }
-      .shell-loader__route--seg2 { animation: route-draw 9s ease-in-out infinite 3s; }
-      .shell-loader__route--seg3 { animation: route-draw 9s ease-in-out infinite 6s; }
+      .shell-loader__route--seg1 { stroke: #e7e9ee; animation: route-draw 9s ease-in-out infinite; }
+      .shell-loader__route--seg2 { stroke: #d8dce2; animation: route-draw 9s ease-in-out infinite 3s; }
+      .shell-loader__route--seg3 { stroke: #dee1e8; animation: route-draw 9s ease-in-out infinite 6s; }
       @keyframes route-draw {
         0% { stroke-dashoffset: 300; opacity: 0; }
         6% { opacity: 1; }
@@ -189,17 +189,24 @@ ${iconLinks}
         44% { opacity: 0; }
         100% { stroke-dashoffset: 300; opacity: 0; }
       }
-      .shell-loader__marker { transform-box: fill-box; transform-origin: center bottom; }
-      .shell-loader__marker--start { animation: marker-start 9s ease-in-out infinite; }
-      .shell-loader__marker--end { animation: marker-end 9s ease-in-out infinite; }
-      @keyframes marker-start {
-        0%, 44%, 100% { transform: translate(0, 0); opacity: 1; }
-        46%, 90% { transform: translate(0, 0); opacity: 0; }
+      .shell-loader__marker { transform-box: fill-box; transform-origin: center bottom; opacity: 0; }
+      .shell-loader__marker--seg1-start { animation: marker-seg1 9s ease-in-out infinite; }
+      .shell-loader__marker--seg1-end { animation: marker-seg1 9s ease-in-out infinite; }
+      .shell-loader__marker--seg2-start { animation: marker-seg2 9s ease-in-out infinite 3s; }
+      .shell-loader__marker--seg2-end { animation: marker-seg2 9s ease-in-out infinite 3s; }
+      .shell-loader__marker--seg3-start { animation: marker-seg3 9s ease-in-out infinite 6s; }
+      .shell-loader__marker--seg3-end { animation: marker-seg3 9s ease-in-out infinite 6s; }
+      @keyframes marker-seg1 {
+        0%, 4%, 44%, 100% { opacity: 0; }
+        6%, 40% { opacity: 1; }
       }
-      @keyframes marker-end {
-        0%, 44% { transform: translate(0, 0); opacity: 0; }
-        46%, 90% { transform: translate(0, 0); opacity: 1; }
-        92%, 100% { transform: translate(0, 0); opacity: 0; }
+      @keyframes marker-seg2 {
+        0%, 34%, 74%, 100% { opacity: 0; }
+        36%, 70% { opacity: 1; }
+      }
+      @keyframes marker-seg3 {
+        0%, 64%, 94%, 100% { opacity: 0; }
+        66%, 90% { opacity: 1; }
       }
       .shell-loader__dot {
         fill: #fff; stroke: #e7e9ee; stroke-width: 2;
@@ -310,13 +317,29 @@ ${iconLinks}
             <path class="shell-loader__route shell-loader__route--seg3" d="M 45 130 V 70 H 90 V 20 H 235" pathLength="300" />
           </g>
           <circle class="shell-loader__dot" r="5" cx="0" cy="0" style="offset-path: path('M 35 70 H 165 V 130 H 280');" />
-          <g class="shell-loader__marker shell-loader__marker--start" transform="translate(35, 55)">
-            <circle r="5" fill="#e74c3c" />
-            <circle r="2" fill="#fff" />
+          <g class="shell-loader__marker shell-loader__marker--seg1-start" transform="translate(35, 55)">
+            <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
+            <circle cx="0" cy="-12" r="3.5" fill="#fff" />
           </g>
-          <g class="shell-loader__marker shell-loader__marker--end" transform="translate(280, 115)">
-            <circle r="5" fill="#e74c3c" />
-            <circle r="2" fill="#fff" />
+          <g class="shell-loader__marker shell-loader__marker--seg1-end" transform="translate(280, 115)">
+            <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
+            <circle cx="0" cy="-12" r="3.5" fill="#fff" />
+          </g>
+          <g class="shell-loader__marker shell-loader__marker--seg2-start" transform="translate(280, 30)">
+            <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
+            <circle cx="0" cy="-12" r="3.5" fill="#fff" />
+          </g>
+          <g class="shell-loader__marker shell-loader__marker--seg2-end" transform="translate(45, 90)">
+            <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
+            <circle cx="0" cy="-12" r="3.5" fill="#fff" />
+          </g>
+          <g class="shell-loader__marker shell-loader__marker--seg3-start" transform="translate(45, 145)">
+            <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
+            <circle cx="0" cy="-12" r="3.5" fill="#fff" />
+          </g>
+          <g class="shell-loader__marker shell-loader__marker--seg3-end" transform="translate(235, 5)">
+            <path d="M 0 0 C -8 -8, -8 -20, 0 -22 C 8 -20, 8 -8, 0 0 Z" fill="#e74c3c" />
+            <circle cx="0" cy="-12" r="3.5" fill="#fff" />
           </g>
         </svg>
         <div class="shell-loader__label" id="shell-loader-label">Строим маршрут</div>
